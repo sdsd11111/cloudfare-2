@@ -35,7 +35,7 @@ export default function OfflinePage() {
         No tienes conexión a internet, pero puedes seguir trabajando. 
         Tus mensajes y gastos se guardarán y se enviarán automáticamente cuando vuelvas a estar en línea.
       </p>
-      <Link href="/admin/operador" style={{ 
+      <a href="/admin/operador" style={{ 
         padding: '12px 24px', 
         backgroundColor: '#3b82f6', 
         color: 'white', 
@@ -44,7 +44,7 @@ export default function OfflinePage() {
         fontWeight: 'bold'
       }}>
         Ir a mis proyectos locales
-      </Link>
+      </a>
     </div>
   )
 }
