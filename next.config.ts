@@ -3,12 +3,16 @@ import withPWAInit from "@ducanh2912/next-pwa";
 
 const withPWA = withPWAInit({
   dest: "public",
-  disable: false, // Habilitar en desarrollo para que el usuario pueda probarlo en su celular
+  disable: false, 
   register: true,
   cacheOnFrontEndNav: true,
   reloadOnOnline: true,
   fallbacks: {
-    document: "/offline" // Cargar página de fallback cuando no hay internet y la página no está cacheada
+    document: "/offline" 
+  },
+  workboxOptions: {
+    skipWaiting: true,
+    clientsClaim: true,
   }
 });
 
