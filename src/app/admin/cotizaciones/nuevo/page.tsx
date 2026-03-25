@@ -3,13 +3,14 @@ import QuoteFormClient from './QuoteFormClient'
 
 export const dynamic = 'force-dynamic'
 
-export default async function NewQuotePage({ searchParams }: { searchParams: { projectId?: string } }) {
+export default async function NewQuotePage({ searchParams }: { searchParams: Promise<{ projectId?: string }> }) {
+  const params = await searchParams;
   const [clients, materials, prefetchedProject] = await Promise.all([
     prisma.client.findMany({ orderBy: { name: 'asc' } }),
     prisma.material.findMany({ where: { isActive: true }, orderBy: { name: 'asc' } }),
-    searchParams.projectId 
+    params.projectId 
       ? prisma.project.findUnique({ 
-          where: { id: Number(searchParams.projectId) },
+          where: { id: Number(params.projectId) },
           include: { budgetItems: { include: { material: true } } } 
         })
       : null

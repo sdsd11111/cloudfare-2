@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import ProjectUploader, { ProjectFile } from '@/components/ProjectUploader'
+import { db } from '@/lib/db'
+import { useLiveQuery } from 'dexie-react-hooks'
 
 import Link from 'next/link'
 
@@ -24,6 +26,58 @@ export default function OperatorProjectClient({
   useEffect(() => {
     setActiveTab((searchParams.get('view') || 'records') as 'records' | 'chat')
   }, [searchParams])
+
+  const pendingItems = useLiveQuery(() => db.outbox.where('projectId').equals(project.id).toArray(), [project.id]) || []
+  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true)
+
+  const syncOutbox = async () => {
+    if (!navigator.onLine) return
+    const items = await db.outbox.where('status').equals('pending').toArray()
+    if (items.length === 0) return
+
+    for (const item of items) {
+       try {
+         await db.outbox.update(item.id!, { status: 'syncing' })
+         let endpoint = ''
+         if (item.type === 'MESSAGE') endpoint = `/api/projects/${project.id}/messages`
+         else if (item.type === 'EXPENSE') endpoint = `/api/projects/${project.id}/expenses`
+         
+         if (endpoint) {
+            const res = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...item.payload, lat: item.lat, lng: item.lng, createdAt: new Date(item.timestamp).toISOString() })
+            })
+            if (res.ok) await db.outbox.delete(item.id!)
+            else await db.outbox.update(item.id!, { status: 'failed' })
+         }
+       } catch (e) {
+          await db.outbox.update(item.id!, { status: 'pending' })
+       }
+    }
+    router.refresh()
+  }
+
+  useEffect(() => {
+    const handleStatusChange = () => {
+      setIsOnline(navigator.onLine)
+      if (navigator.onLine) syncOutbox()
+    }
+    window.addEventListener('online', handleStatusChange)
+    window.addEventListener('offline', handleStatusChange)
+    
+    // Auto-sync interval
+    const interval = setInterval(() => {
+        if (navigator.onLine) syncOutbox()
+    }, 15000)
+
+    return () => {
+      window.removeEventListener('online', handleStatusChange)
+      window.removeEventListener('offline', handleStatusChange)
+      clearInterval(interval)
+    }
+  }, [project.id])
+
   const [loading, setLoading] = useState(false)
   const [expenseForm, setExpenseForm] = useState(false)
   const [amount, setAmount] = useState('')
@@ -224,23 +278,54 @@ export default function OperatorProjectClient({
         }
       }
 
-      await fetch(`/api/projects/${project.id}/messages`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          phaseId: phaseIdToSend, 
-          content: msgToSend, 
-          type: mediaFile ? (mediaFile.type.startsWith('image') ? 'IMAGE' : 'VIDEO') : (customMsg ? 'NOTE' : 'TEXT'),
-          lat: location?.lat,
-          lng: location?.lng,
-          media: mediaData
+      const payload = { 
+        phaseId: phaseIdToSend, 
+        content: msgToSend, 
+        type: mediaFile ? (mediaFile.type.startsWith('image') ? 'IMAGE' : 'VIDEO') : (customMsg ? 'NOTE' : 'TEXT'),
+        media: mediaData
+      }
+
+      if (!navigator.onLine) {
+         await db.outbox.add({
+            type: 'MESSAGE',
+            projectId: project.id,
+            payload,
+            timestamp: Date.now(),
+            lat: location?.lat,
+            lng: location?.lng,
+            status: 'pending'
+         })
+         if (!customMsg) setMessage('')
+         else setNote('')
+         return
+      }
+
+      try {
+        const res = await fetch(`/api/projects/${project.id}/messages`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...payload, lat: location?.lat, lng: location?.lng })
         })
-      })
-      if (!customMsg) setMessage('')
-      else setNote('')
-      router.refresh()
+        if (!res.ok && res.status !== 401) throw new Error('Network error')
+        
+        if (!customMsg) setMessage('')
+        else setNote('')
+        router.refresh()
+      } catch (e) {
+         await db.outbox.add({
+            type: 'MESSAGE',
+            projectId: project.id,
+            payload,
+            timestamp: Date.now(),
+            lat: location?.lat,
+            lng: location?.lng,
+            status: 'pending'
+         })
+         if (!customMsg) setMessage('')
+         else setNote('')
+      }
     } catch (e) {
-      alert("Error enviando mensaje")
+      alert("Error procesando mensaje")
     } finally {
       setLoading(false)
     }
@@ -299,8 +384,28 @@ export default function OperatorProjectClient({
       }
     }))
 
-  const filteredChat = initialChat.filter((msg: any) => {
-    if (msg.phaseId !== activePhase) return false
+  const combinedChat = [
+    ...initialChat,
+    ...pendingItems
+      .filter((item: any) => item.type === 'MESSAGE')
+      .map((item: any) => ({
+        id: `pending-${item.id}`,
+        projectId: item.projectId,
+        userId: userId,
+        userName: 'Yo (Pendiente)',
+        content: item.payload.content,
+        type: item.payload.type,
+        createdAt: new Date(item.timestamp).toISOString(),
+        isMe: true,
+        isPending: true,
+        lat: item.lat,
+        lng: item.lng,
+        media: item.payload.media ? [{ url: item.payload.media.base64, filename: item.payload.media.filename, mimeType: item.payload.media.mimeType }] : []
+      }))
+  ].sort((a,b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+
+  const filteredChat = combinedChat.filter((msg: any) => {
+    if (msg.phaseId && msg.phaseId !== activePhase) return false
     if (chatFilter === 'media') return msg.media && msg.media.length > 0
     if (chatFilter === 'notes') return msg.type === 'NOTE'
     if (chatFilter === 'text') return msg.type === 'TEXT' && (!msg.media || msg.media.length === 0)
@@ -315,7 +420,13 @@ export default function OperatorProjectClient({
           &larr; {isSmallScreen ? 'Volver' : 'Volver a Mis Proyectos'}
         </Link>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h1 style={{ fontSize: isSmallScreen ? '1.4rem' : '1.8rem', margin: 0, color: 'var(--text)', fontWeight: 'bold' }}>{project.title}</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.7rem', color: isOnline ? 'var(--success)' : 'var(--warning)', backgroundColor: 'var(--bg-deep)', padding: '2px 8px', borderRadius: '12px', border: '1px solid currentColor' }}>
+               <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'currentColor' }}></div>
+               {isOnline ? 'EN LÍNEA' : 'MODO OFFLINE'}
+            </div>
+            <h1 style={{ fontSize: isSmallScreen ? '1.4rem' : '1.8rem', margin: 0, color: 'var(--text)', fontWeight: 'bold' }}>{project.title}</h1>
+          </div>
           <span className={`status-badge status-${project.status.toLowerCase()}`} style={{ fontSize: isSmallScreen ? '0.7rem' : '0.8rem', padding: isSmallScreen ? '2px 8px' : '4px 12px' }}>
             {project.status === 'ACTIVO' ? 'Activo' : 'Pendiente'}
           </span>
@@ -601,9 +712,17 @@ export default function OperatorProjectClient({
                             </div>
                         )}
                         {msg.content}
+                        {msg.isPending && (
+                           <div style={{ fontSize: '0.65rem', marginTop: '4px', opacity: 0.7, display: 'flex', alignItems: 'center', gap: '3px', fontStyle: 'italic' }}>
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                              Pendiente de sincronización...
+                           </div>
+                        )}
                       </div>
                     </div>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '4px', alignSelf: msg.isMe ? 'flex-end' : 'flex-start', margin: '0 4px' }}>{mounted ? new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}</span>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '4px', alignSelf: msg.isMe ? 'flex-end' : 'flex-start', margin: '0 4px' }}>
+                        {msg.isPending ? 'Ahora' : (mounted ? new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '')}
+                    </span>
                   </div>
                 ))
               )}

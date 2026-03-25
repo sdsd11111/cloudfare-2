@@ -17,7 +17,7 @@ export async function uploadToBunny(
       AccessKey: BUNNY_STORAGE_API_KEY,
       'Content-Type': 'application/octet-stream',
     },
-    body: new Uint8Array(file),
+    body: file as any,
   })
 
   if (!response.ok) {
