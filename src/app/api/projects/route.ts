@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '../auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 
 export async function GET(request: Request) {
   try {
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
     }
 
     const data = await request.json()
-    const { title, type, subtype, address, startDate, endDate, client, phases, team, budgetItems, categoryList, technicalSpecs, contractTypeList, clientId } = data
+    const { title, type, subtype, address, city, startDate, endDate, client, phases, team, budgetItems, categoryList, technicalSpecs, contractTypeList, clientId } = data
 
     // Validate minimum required data
     if (!title || (!client?.name && !clientId)) {
@@ -108,6 +108,7 @@ export async function POST(request: Request) {
           startDate: startDate ? new Date(startDate) : new Date(),
           endDate: endDate ? new Date(endDate) : null,
           address: address || null,
+          city: city || null,
           clientId: targetClientId,
           estimatedBudget: budgetItems ? budgetItems.reduce((acc: number, item: any) => acc + (Number(item.quantity) * Number(item.estimatedCost)), 0) : 0,
           categoryList: categoryList || [],

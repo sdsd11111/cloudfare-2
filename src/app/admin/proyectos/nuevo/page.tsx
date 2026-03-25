@@ -16,6 +16,7 @@ export default function NuevoProyectoPage() {
     title: '',
     type: 'INSTALLATION',
     address: '',
+    city: '',
     startDate: new Date().toISOString().split('T')[0],
     endDate: '',
     categoryList: [] as string[],
@@ -361,8 +362,12 @@ export default function NuevoProyectoPage() {
                             <input type="date" className="form-input" value={projectData.startDate} onChange={e => setProjectData({...projectData, startDate: e.target.value})} />
                         </div>
                         <div style={inputGroupStyle}>
+                            <label style={labelStyle}>Ciudad</label>
+                            <input type="text" className="form-input" placeholder="Ej. Loja" value={projectData.city} onChange={e => setProjectData({...projectData, city: e.target.value})} />
+                        </div>
+                        <div style={inputGroupStyle}>
                             <label style={labelStyle}>Dirección Física (Opcional)</label>
-                            <input type="text" className="form-input" placeholder="Ej. Conjunto Residencial Los Pinos, Loja" value={projectData.address} onChange={e => setProjectData({...projectData, address: e.target.value})} />
+                            <input type="text" className="form-input" placeholder="Ej. Calle 123" value={projectData.address} onChange={e => setProjectData({...projectData, address: e.target.value})} />
                         </div>
                     </div>
 

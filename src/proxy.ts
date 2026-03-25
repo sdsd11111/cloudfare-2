@@ -1,10 +1,12 @@
 import { withAuth } from "next-auth/middleware";
 
-export default withAuth({
+const proxy = withAuth({
   pages: {
     signIn: "/admin/login",
   },
 });
+
+export { proxy };
 
 export const config = {
   matcher: ["/admin/:path*"]
