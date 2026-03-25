@@ -134,7 +134,7 @@ async function main() {
   const project3 = await prisma.project.create({
     data: {
       title: 'Spa Hotel El Cardenal',
-      type: 'SPA',
+      type: 'JACUZZI',
       subtype: 'Jacuzzi + Sauna + Turco',
       status: 'LEAD',
       description: 'Diseño y construcción de área de spa completa para el hotel.',
