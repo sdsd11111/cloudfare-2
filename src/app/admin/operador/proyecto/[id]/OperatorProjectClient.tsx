@@ -183,63 +183,56 @@ export default function OperatorProjectClient({
           location = await new Promise<any>((resolve) => {
             navigator.geolocation.getCurrentPosition(
               pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-              () => resolve(null)
+              () => resolve(null),
+              { timeout: 10000 }
             )
           })
         } catch(e) {}
       }
 
-      if (activeRecord) {
-        const payload = { recordId: activeRecord.id, projectId: project.id }
-        // End Day
-        if (!navigator.onLine) {
-          await db.outbox.add({
-            type: 'DAY_END',
-            projectId: project.id,
-            payload,
-            timestamp: Date.now(),
-            lat: location?.lat,
-            lng: location?.lng,
-            status: 'pending'
-          })
-          router.refresh() // local feedback
-          setLoading(false)
-          return
-        }
+      const isEnding = !!activeRecord
+      const payload = isEnding 
+        ? { recordId: activeRecord.id, projectId: project.id }
+        : { projectId: project.id, location }
+      const type = isEnding ? 'DAY_END' : 'DAY_START'
 
-        await fetch('/api/day-records', {
-          method: 'PUT',
+      // Always try local save first if offline, or if online but flaky
+      if (!navigator.onLine) {
+        await db.outbox.add({
+          type,
+          projectId: project.id,
+          payload,
+          timestamp: Date.now(),
+          lat: location?.lat,
+          lng: location?.lng,
+          status: 'pending'
+        })
+        setLoading(false)
+        return
+      }
+
+      try {
+        const res = await fetch('/api/day-records', {
+          method: isEnding ? 'PUT' : 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         })
-      } else {
-        const payload = { projectId: project.id, location }
-        // Start Day
-        if (!navigator.onLine) {
-          await db.outbox.add({
-            type: 'DAY_START',
-            projectId: project.id,
-            payload,
-            timestamp: Date.now(),
-            lat: location?.lat,
-            lng: location?.lng,
-            status: 'pending'
-          })
-          router.refresh()
-          setLoading(false)
-          return
-        }
-
-        await fetch('/api/day-records', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+        if (!res.ok) throw new Error('Refresh needed')
+        router.refresh()
+      } catch (err) {
+        // Fallback to outbox if fetch fails
+        await db.outbox.add({
+          type,
+          projectId: project.id,
+          payload,
+          timestamp: Date.now(),
+          lat: location?.lat,
+          lng: location?.lng,
+          status: 'pending'
         })
       }
-      router.refresh()
     } catch (e) {
       console.error(e)
-      alert("Error actualizando registro de horas")
     } finally {
       setLoading(false)
     }
@@ -254,7 +247,8 @@ export default function OperatorProjectClient({
         location = await new Promise((resolve) => {
           navigator.geolocation.getCurrentPosition(
             pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-            () => resolve(null)
+            () => resolve(null),
+            { timeout: 8000 }
           )
         })
       }
@@ -282,21 +276,35 @@ export default function OperatorProjectClient({
         return
       }
 
-      await fetch(`/api/projects/${project.id}/expenses`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          ...payload,
-          lat: location?.lat,
-          lng: location?.lng
+      try {
+        const res = await fetch(`/api/projects/${project.id}/expenses`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            ...payload,
+            lat: location?.lat,
+            lng: location?.lng
+          })
         })
-      })
+        if (!res.ok) throw new Error('Refetch')
+        router.refresh()
+      } catch (err) {
+        // Fallback
+        await db.outbox.add({
+          type: 'EXPENSE',
+          projectId: project.id,
+          payload,
+          timestamp: Date.now(),
+          lat: location?.lat,
+          lng: location?.lng,
+          status: 'pending'
+        })
+      }
       setExpenseForm(false)
       setAmount('')
       setDescription('')
-      router.refresh()
     } catch (e) {
-      alert("Error agregando gasto")
+      console.error(e)
     } finally {
       setLoading(false)
     }
@@ -428,13 +436,14 @@ export default function OperatorProjectClient({
         location = await new Promise((resolve) => {
           navigator.geolocation.getCurrentPosition(
             pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-            () => resolve(null)
+            () => resolve(null),
+            { timeout: 8000 }
           )
         })
       }
 
       const isOffline = !navigator.onLine
-      const isBase64 = file.url.startsWith('data:')
+      const isBase64 = typeof file.url === 'string' && file.url.startsWith('data:')
 
       const payload = { 
         phaseId: activePhase || project.phases[0]?.id, 
@@ -451,6 +460,7 @@ export default function OperatorProjectClient({
         }
       }
 
+      // Explicit offline check
       if (isOffline) {
         await db.outbox.add({
           type: 'MEDIA_UPLOAD',
@@ -461,23 +471,36 @@ export default function OperatorProjectClient({
           lng: location?.lng,
           status: 'pending'
         })
-        router.refresh()
         setLoading(false)
         return
       }
 
-      await fetch(`/api/projects/${project.id}/messages`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          ...payload,
-          lat: location?.lat,
-          lng: location?.lng
+      try {
+        const res = await fetch(`/api/projects/${project.id}/messages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            ...payload,
+            lat: location?.lat,
+            lng: location?.lng
+          })
         })
-      })
-      router.refresh()
+        if (!res.ok) throw new Error('Refetch')
+        router.refresh()
+      } catch (err) {
+        // Silent fallback to outbox
+        await db.outbox.add({
+          type: 'MEDIA_UPLOAD',
+          projectId: project.id,
+          payload,
+          timestamp: Date.now(),
+          lat: location?.lat,
+          lng: location?.lng,
+          status: 'pending'
+        })
+      }
     } catch (e) {
-      alert("Error vinculando archivo")
+      console.error(e)
     } finally {
       setLoading(false)
     }

@@ -516,7 +516,7 @@ export default function ProjectDetailClient({ project, availableOperators = [] }
             </h3>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-              {project.chatMessages.slice(0, 10).map((msg: any) => (
+              {project.chatMessages.slice(0, 5).map((msg: any) => (
                 <div key={msg.id} style={{ display: 'flex', gap: '10px' }}>
                   <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: 'var(--bg-surface)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 'bold' }}>
                     {msg.user.name.substring(0,2).toUpperCase()}
@@ -560,9 +560,11 @@ export default function ProjectDetailClient({ project, availableOperators = [] }
               )}
             </div>
             
-            <Link href={`/admin/proyectos/${project.id}/bitacora`} className="btn btn-ghost btn-sm" style={{ width: '100%', marginTop: '15px', fontSize: '0.8rem' }}>
-              Ver Bitácora Completa
-            </Link>
+            {project.chatMessages.length > 5 && (
+              <Link href={`/admin/proyectos/${project.id}/bitacora`} className="btn btn-ghost btn-sm" style={{ width: '100%', marginTop: '15px', fontSize: '0.8rem', border: '1px solid var(--border-color)' }}>
+                Ver Bitácora Completa ({project.chatMessages.length - 5} más)
+              </Link>
+            )}
           </div>
         </div>
       </div>
