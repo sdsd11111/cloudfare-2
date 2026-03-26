@@ -26,9 +26,21 @@ export default function LoginPage() {
       setError('Credenciales incorrectas')
       setLoading(false)
     } else {
-      // Usar window.location asegura que las cookies de sesión se envíen
-      // correctamente al servidor y el middleware maneje la redirección sin problemas
-      window.location.href = '/admin'
+      // Fetch session data to determine role-based redirection
+      try {
+        const sessionRes = await fetch('/api/auth/session')
+        const session = await sessionRes.json()
+        
+        if (session?.user?.role === 'OPERATOR') {
+          window.location.href = '/admin/operador'
+        } else {
+          window.location.href = '/admin'
+        }
+      } catch (err) {
+        // Fallback to broad admin if fetch fails, although this shouldn't happen 
+        // online during a fresh login
+        window.location.href = '/admin'
+      }
     }
   }
 
