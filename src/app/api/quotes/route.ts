@@ -69,7 +69,7 @@ export async function POST(req: Request) {
           create: items.map((item: any) => ({
             materialId: item.materialId ? Number(item.materialId) : null,
             description: item.description,
-            quantity: Number(item.quantity),
+            quantity: item.quantity === 'GLOBAL' ? 1 : Number(item.quantity),
             unitPrice: Number(item.unitPrice),
             discountPct: Number(item.discountPct || 0),
             isTaxed: item.isTaxed !== undefined ? Boolean(item.isTaxed) : true,
