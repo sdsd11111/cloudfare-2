@@ -138,13 +138,27 @@ export default function ProjectUploader({
           </div>
         )}
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '12px', 
+          flexWrap: 'wrap',
+          width: '100%',
+          justifyContent: 'space-between'
+        }}>
           {!readOnly && (
             <button 
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
-              className="btn btn-primary btn-sm flex items-center gap-2"
-              style={{ padding: '8px 16px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}
+              className="btn btn-primary btn-sm"
+              style={{ 
+                padding: '8px 16px', 
+                borderRadius: '8px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '8px',
+                flexShrink: 0
+              }}
             >
               {isUploading ? (
                 <>
@@ -160,8 +174,19 @@ export default function ProjectUploader({
             </button>
           )}
 
-          {/* Filters - Professional Styling */}
-          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+          {/* Filters - Professional Scrolling on Mobile */}
+          <div 
+            className="scrollbar-hide" 
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px', 
+              overflowX: 'auto', 
+              paddingBottom: '4px',
+              maxWidth: '100%',
+              WebkitOverflowScrolling: 'touch'
+            }}
+          >
             <div style={{ 
               display: 'flex', 
               alignItems: 'center', 
@@ -172,7 +197,8 @@ export default function ProjectUploader({
               border: '1px solid rgba(255, 255, 255, 0.08)',
               color: 'var(--text-muted)',
               fontSize: '0.75rem',
-              fontWeight: 600
+              fontWeight: 600,
+              flexShrink: 0
             }}>
               <Filter size={14} />
               <span>Filtrar</span>
@@ -193,7 +219,9 @@ export default function ProjectUploader({
                   backgroundColor: filter === t ? 'var(--primary)' : 'rgba(255, 255, 255, 0.05)',
                   borderColor: filter === t ? 'var(--primary)' : 'rgba(255, 255, 255, 0.1)',
                   color: filter === t ? 'white' : 'var(--text-muted)',
-                  boxShadow: filter === t ? '0 4px 12px rgba(54, 162, 235, 0.3)' : 'none'
+                  boxShadow: filter === t ? '0 4px 12px rgba(54, 162, 235, 0.3)' : 'none',
+                  flexShrink: 0,
+                  whiteSpace: 'nowrap'
                 }}
                 className={filter === t ? 'scale-105' : 'hover:bg-white/10'}
               >

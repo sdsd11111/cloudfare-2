@@ -23,7 +23,7 @@ function OfflineQuoteContent() {
           // Convert the payload to match what QuoteDetailClient expects from Prisma
           const q = item.payload
           setQuotePayload({
-            id: 'OFFLINE_PENDING',
+            id: '(PENDIENTE)',
             status: 'BORRADOR', // Offline quotes are always drafts
             clientId: q.clientId,
             clientName: q.clientName,
@@ -31,16 +31,16 @@ function OfflineQuoteContent() {
             clientAddress: q.clientAddress,
             clientPhone: q.clientPhone,
             clientAttention: q.clientAttention,
-            subtotal: q.subtotal,
-            subtotal0: q.subtotal0,
-            subtotal15: q.subtotal15,
-            ivaAmount: q.ivaAmount,
-            discountTotal: q.discountTotal,
-            totalAmount: q.totalAmount,
-            notes: q.notes,
+            subtotal: q.subtotal || 0,
+            subtotal0: q.subtotal0 || 0,
+            subtotal15: q.subtotal15 || 0,
+            ivaAmount: q.ivaAmount || 0,
+            discountTotal: q.discountTotal || 0,
+            totalAmount: q.totalAmount || 0,
+            notes: q.notes || '',
             validUntil: q.validUntil,
-            createdAt: new Date(),
-            items: q.items,
+            createdAt: q.createdAt || new Date(),
+            items: q.items || [],
             project: q.projectId ? { title: 'Proyecto Vinculado (Offline)' } : null
           })
         } else {
