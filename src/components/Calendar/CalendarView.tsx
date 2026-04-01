@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { getLocalNow, formatToEcuador } from '@/lib/date-utils'
 
 // Inline SVG icons to match project pattern and avoid lucide-react issues
 const svgProps = (size: number, style?: React.CSSProperties, className?: string) => ({
@@ -28,10 +29,10 @@ export default function CalendarView({
   viewMode: initialViewMode = 'MONTH',
   isAdmin = false
 }: CalendarViewProps) {
-  const [currentDate, setCurrentDate] = useState(new Date())
+  const [currentDate, setCurrentDate] = useState(getLocalNow())
   const [viewMode, setViewMode] = useState<'MONTH' | 'WEEK'>(initialViewMode)
 
-  const monthName = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(currentDate)
+  const monthName = formatToEcuador(currentDate, { month: 'long', year: 'numeric' })
   
   const daysInMonth = useMemo(() => {
     const year = currentDate.getFullYear()
@@ -103,7 +104,7 @@ export default function CalendarView({
           </h2>
           <div style={{ display: 'flex', gap: '4px' }}>
             <button className="btn btn-ghost btn-sm" onClick={() => navigate('PREV')}><ChevronLeft size={18}/></button>
-            <button className="btn btn-ghost btn-sm" onClick={() => setCurrentDate(new Date())}>Hoy</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => setCurrentDate(getLocalNow())}>Hoy</button>
             <button className="btn btn-ghost btn-sm" onClick={() => navigate('NEXT')}><ChevronRight size={18}/></button>
           </div>
         </div>
@@ -150,7 +151,7 @@ export default function CalendarView({
 
         {(viewMode === 'MONTH' ? daysInMonth : weekDays).map((day, idx) => {
           const dayEvents = getEventsForDay(day as Date)
-          const isToday = day && day.toDateString() === new Date().toDateString()
+          const isToday = day && day.toDateString() === getLocalNow().toDateString()
           const isDifferentMonth = day && day.getMonth() !== currentDate.getMonth()
 
           return (
@@ -212,7 +213,7 @@ export default function CalendarView({
                   >
                     <div style={{ fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{event.title}</div>
                     <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-                        {new Date(event.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {formatToEcuador(event.startTime, { hour: '2-digit', minute: '2-digit' })}
                     </div>
                   </button>
                 ))}

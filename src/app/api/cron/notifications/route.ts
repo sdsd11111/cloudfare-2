@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { sendWhatsAppMessage } from '@/lib/whatsapp';
+import { getLocalNow } from '@/lib/date-utils';
 
 /**
  * RUTA DE CRON: https://dominio.com/api/cron/notifications?secret=...
@@ -16,11 +17,9 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Configuración de Zona Horaria (Ecuador/LatAm)
-    const now = new Date();
-    // Convertimos a la hora local ajustada (Ecuador es GMT-5)
-    // Vercel usa UTC por defecto.
-    const localTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Guayaquil' }));
+    // Configuración de Zona Horaria (Ecuador/LatAm) mediante utilidad
+    const localTime = getLocalNow();
+    const now = new Date(); // Mantenemos now como UTC para comparaciones de timestamps absolutos
     const currentHour = localTime.getHours();
     const currentMinute = localTime.getMinutes();
 
@@ -28,8 +27,8 @@ export async function GET(request: Request) {
 
     const results: string[] = [];
 
-    // --- 1. RESUMEN DIARIO (Solo entre las 6:00 y las 6:10 AM) ---
-    if (currentHour === 6 && currentMinute <= 10) {
+    // --- 1. RESUMEN DIARIO (Solo entre las 6:00 AM y las 6:10 AM + PRUEBA 10:20 AM) ---
+    if ((currentHour === 6 && currentMinute <= 10) || (currentHour === 10 && currentMinute >= 20 && currentMinute <= 30)) {
       const todayStart = new Date(localTime);
       todayStart.setHours(0, 0, 0, 0);
       const todayEnd = new Date(localTime);
@@ -53,7 +52,12 @@ export async function GET(request: Request) {
           let summary = `*Resumen del Día - Aquatech*\n\nHola ${op.name}, hoy tienes *${op.appointments.length}* tareas asignadas:\n\n`;
           
           op.appointments.forEach((apt, idx) => {
-            const time = new Date(apt.startTime).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit', hour12: true });
+            const time = new Date(apt.startTime).toLocaleTimeString('es-EC', { 
+              hour: '2-digit', 
+              minute: '2-digit', 
+              hour12: true,
+              timeZone: 'America/Guayaquil'
+            });
             summary += `${idx + 1}. *${apt.title}* a las ${time}\n`;
           });
 

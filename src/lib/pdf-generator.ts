@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { formatToEcuador, ECUADOR_TIMEZONE } from './date-utils';
 
 // Global constants for branding parity
 const AQUATECH_BLUE: [number, number, number] = [0, 112, 192];
@@ -203,7 +204,7 @@ export function generateProfessionalPDF(
   doc.setFont('helvetica', 'normal');
   doc.text((client.name || '').toUpperCase(), 35, 56);
   doc.text((client.address || 'SN').toUpperCase(), 35, 62);
-  doc.text(new Date(client.date || new Date()).toLocaleDateString(), 45, 68);
+  doc.text(formatToEcuador(client.date || new Date(), { day: '2-digit', month: '2-digit', year: 'numeric' }), 45, 68);
 
   // Right columns of Client Box
   doc.setFont('helvetica', 'bold');
@@ -396,7 +397,7 @@ export function generateProjectReportPDF(data: {
   doc.setFont('helvetica', 'normal');
   doc.text(`Cliente: ${clientName || 'N/A'}`, 20, 58);
   doc.text(`Dirección: ${address || 'N/A'}`, 20, 64);
-  doc.text(`Fecha Reporte: ${new Date().toLocaleDateString()}`, 130, 58);
+  doc.text(`Fecha Reporte: ${formatToEcuador(new Date(), { day: '2-digit', month: '2-digit', year: 'numeric' })}`, 130, 58);
   doc.text(`ID: #${project.id}`, 130, 64);
 
   // 3. Bitácora de Campo Table
@@ -406,7 +407,10 @@ export function generateProjectReportPDF(data: {
   doc.text('BITÁCORA DE CAMPO', 15, 82);
 
   const chatBody = chat.map(msg => [
-    new Date(msg.createdAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }),
+    formatToEcuador(msg.createdAt, { 
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit' 
+    }),
     msg.userName || 'Sistema',
     msg.content || (msg.media?.length ? '[MULTIMEDIA]' : '-'),
     msg.isPending ? 'OFFLINE' : 'SINC.'
@@ -437,7 +441,7 @@ export function generateProjectReportPDF(data: {
   const expensesBody = expenses.map(exp => {
     totalExpenses += Number(exp.amount);
     return [
-      new Date(exp.date).toLocaleDateString(),
+      formatToEcuador(exp.date, { day: '2-digit', month: '2-digit', year: 'numeric' }),
       exp.description,
       `$ ${Number(exp.amount).toFixed(2)}`,
       exp.isPending ? 'PEND.' : 'SINC.'

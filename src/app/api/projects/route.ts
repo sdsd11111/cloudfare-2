@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { getLocalNow } from '@/lib/date-utils'
 
 export async function GET(request: Request) {
   try {
@@ -125,7 +126,7 @@ export async function POST(request: Request) {
           type: mappedType as any,
           subtype: subtype || null,
           status: isOperator ? 'LEAD' : (status || 'ACTIVO'),
-          startDate: startDate ? new Date(startDate) : new Date(),
+          startDate: startDate ? new Date(startDate) : getLocalNow(),
           endDate: endDate ? new Date(endDate) : null,
           address: address || null,
           city: city || null,

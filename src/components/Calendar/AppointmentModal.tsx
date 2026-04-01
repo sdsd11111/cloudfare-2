@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { getLocalNow, formatForDateTimeInput } from '@/lib/date-utils'
 
 interface AppointmentModalProps {
   isOpen: boolean
@@ -40,14 +41,14 @@ export default function AppointmentModal({
         setFormData({
           title: initialData.title || '',
           description: initialData.description || '',
-          startTime: initialData.startTime ? new Date(initialData.startTime).toISOString().slice(0, 16) : '',
-          endTime: initialData.endTime ? new Date(initialData.endTime).toISOString().slice(0, 16) : '',
+          startTime: formatForDateTimeInput(initialData.startTime),
+          endTime: formatForDateTimeInput(initialData.endTime),
           projectId: initialData.projectId?.toString() || '',
           userId: initialData.userId?.toString() || (userId > 0 ? userId.toString() : ''),
           status: initialData.status || 'PENDIENTE'
         })
       } else {
-        const now = new Date()
+        const now = getLocalNow()
         now.setMinutes(0)
         const inOneHour = new Date(now)
         inOneHour.setHours(now.getHours() + 1)
@@ -55,8 +56,8 @@ export default function AppointmentModal({
         setFormData({
           title: '',
           description: '',
-          startTime: now.toISOString().slice(0, 16),
-          endTime: inOneHour.toISOString().slice(0, 16),
+          startTime: formatForDateTimeInput(now),
+          endTime: formatForDateTimeInput(inOneHour),
           projectId: '',
           userId: userId > 0 ? userId.toString() : '',
           status: 'PENDIENTE'

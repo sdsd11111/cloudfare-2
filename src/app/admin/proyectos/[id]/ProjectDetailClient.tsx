@@ -6,6 +6,7 @@ import autoTable from 'jspdf-autotable'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import ProjectUploader, { ProjectFile } from '@/components/ProjectUploader'
+import { formatToEcuador, ECUADOR_TIMEZONE } from '@/lib/date-utils'
 
 export default function ProjectDetailClient({ project, availableOperators = [] }: any) {
   const router = useRouter()
@@ -360,16 +361,16 @@ export default function ProjectDetailClient({ project, availableOperators = [] }
   const formatDate = (date: Date | string | null) => {
     if (!date) return 'N/A'
     const d = typeof date === 'string' ? new Date(date) : date
-    return new Intl.DateTimeFormat('es-ES', { month: 'long', day: 'numeric', year: 'numeric' }).format(d)
+    return formatToEcuador(d, { month: 'long', day: 'numeric', year: 'numeric' })
   }
 
   const formatDateTime = (date: Date | string | null) => {
     if (!date) return 'N/A'
     const d = typeof date === 'string' ? new Date(date) : date
-    return new Intl.DateTimeFormat('es-ES', { 
+    return formatToEcuador(d, { 
       day: '2-digit', month: '2-digit', year: 'numeric',
       hour: '2-digit', minute: '2-digit' 
-    }).format(d)
+    })
   }
 
   // --- MÉTRICAS ---
@@ -435,7 +436,7 @@ export default function ProjectDetailClient({ project, availableOperators = [] }
       doc.setFontSize(10)
       doc.setFont('helvetica', 'normal')
       doc.text(`ID Proyecto: #${fullProject.id}`, 20, 35)
-      doc.text(`Fecha de Reporte: ${new Date().toLocaleDateString()}`, 150, 35)
+      doc.text(`Fecha de Reporte: ${formatToEcuador(new Date(), { day: '2-digit', month: '2-digit', year: 'numeric' })}`, 150, 35)
 
       // 1. RESUMEN EJECUTIVO
       doc.setTextColor(0, 0, 0)
@@ -503,8 +504,8 @@ export default function ProjectDetailClient({ project, availableOperators = [] }
       const attendanceData = project.dayRecords.map((rec: any) => [
         formatDate(rec.createdAt),
         rec.user.name,
-        rec.startTime ? new Date(rec.startTime).toLocaleTimeString() : '---',
-        rec.endTime ? new Date(rec.endTime).toLocaleTimeString() : 'Aún en labor',
+        rec.startTime ? new Date(rec.startTime).toLocaleTimeString('es-EC', { timeZone: ECUADOR_TIMEZONE }) : '---',
+        rec.endTime ? new Date(rec.endTime).toLocaleTimeString('es-EC', { timeZone: ECUADOR_TIMEZONE }) : 'Aún en labor',
         rec.endTime && rec.startTime ? 
           `${((new Date(rec.endTime).getTime() - new Date(rec.startTime).getTime()) / (1000 * 60 * 60)).toFixed(1)} hrs` : '---'
       ])
@@ -580,7 +581,7 @@ export default function ProjectDetailClient({ project, availableOperators = [] }
       doc.setFontSize(11)
       doc.setFont('helvetica', 'normal')
       doc.text(`#${fullProject.id} — ${fullProject.title}`, 20, 43)
-      doc.text(`Fecha: ${new Date().toLocaleDateString('es-EC')}`, 150, 43)
+      doc.text(`Fecha: ${formatToEcuador(new Date(), { day: '2-digit', month: '2-digit', year: 'numeric' })}`, 150, 43)
 
       let y = 70
 

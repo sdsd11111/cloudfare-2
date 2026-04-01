@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { NextResponse } from 'next/server'
 import { uploadToBunny } from '@/lib/bunny'
+import { getLocalNow } from '@/lib/date-utils'
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -13,7 +14,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const { amount, description, date, createdAt, lat, lng, receiptPhoto } = await req.json()
     const projectId = Number(id)
     const userId = Number(session.user.id)
-    const expenseDate = new Date(date || createdAt || new Date())
+    const expenseDate = new Date(date || createdAt || getLocalNow())
 
     let receiptUrl = null
     if (receiptPhoto && typeof receiptPhoto === 'string' && receiptPhoto.startsWith('data:image')) {

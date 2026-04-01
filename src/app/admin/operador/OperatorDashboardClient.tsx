@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { getLocalNow, formatToEcuador } from '@/lib/date-utils'
 import Link from 'next/link'
 import CalendarView from '@/components/Calendar/CalendarView'
 import AppointmentModal from '@/components/Calendar/AppointmentModal'
@@ -38,7 +39,7 @@ export default function OperatorDashboardClient({
   const [editingEvent, setEditingEvent] = useState<any>(null)
 
   const todayTasks = useMemo(() => {
-    const today = new Date()
+    const today = getLocalNow()
     return appointments
       .filter(a => {
         const d = new Date(a.startTime)
@@ -133,7 +134,7 @@ export default function OperatorDashboardClient({
                    </h3>
                    <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <Clock size={12}/> {new Date(task.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        <Clock size={12}/> {formatToEcuador(task.startTime, { hour: '2-digit', minute: '2-digit' })}
                       </span>
                       {task.project && (
                         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { getLocalNow, formatToEcuador, toEcuadorISODate } from '@/lib/date-utils'
 
 export default function ReportesClient({ initialProjects }: { initialProjects: any[] }) {
   const [projectId, setProjectId] = useState<string>('ALL')
@@ -14,7 +15,7 @@ export default function ReportesClient({ initialProjects }: { initialProjects: a
 
   // Initialize date on client only to avoid hydration mismatch
   useEffect(() => {
-    setSelectedDate(new Date().toISOString().split('T')[0])
+    setSelectedDate(toEcuadorISODate(getLocalNow()))
   }, [])
 
   const fetchReports = async () => {
@@ -54,14 +55,14 @@ export default function ReportesClient({ initialProjects }: { initialProjects: a
   const getDateDisplay = () => {
     const d = new Date(selectedDate)
     if (timeframe === 'diario') {
-      return d.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+      return formatToEcuador(d, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
     } else if (timeframe === 'semanal') {
       const day = d.getDay() || 7; 
       const start = new Date(d); start.setHours(-24 * (day - 1));
       const end = new Date(start); end.setDate(end.getDate() + 6);
-      return `Semana: ${start.toLocaleDateString()} al ${end.toLocaleDateString()}`
+      return `Semana: ${formatToEcuador(start, { day: '2-digit', month: '2-digit', year: 'numeric' })} al ${formatToEcuador(end, { day: '2-digit', month: '2-digit', year: 'numeric' })}`
     } else {
-      return d.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
+      return formatToEcuador(d, { month: 'long', year: 'numeric' })
     }
   }
 
@@ -188,7 +189,7 @@ export default function ReportesClient({ initialProjects }: { initialProjects: a
                     {report.recentNotes.map((note: any) => (
                       <div key={note.id} style={{ padding: '10px', backgroundColor: 'var(--bg-color)', borderRadius: '6px', fontSize: '0.85rem' }}>
                         <strong style={{ color: 'var(--primary)' }}>{note.user}</strong> <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginLeft: '5px' }}>
-                          ({new Date(note.date).toLocaleString([], {hour: '2-digit', minute:'2-digit'})})
+                          ({formatToEcuador(note.date, { hour: '2-digit', minute: '2-digit' })})
                         </span>: {note.content}
                       </div>
                     ))}

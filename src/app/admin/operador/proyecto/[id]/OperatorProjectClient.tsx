@@ -12,6 +12,7 @@ import {
   generateProjectReportPDF, 
   addAquatechHeader 
 } from '@/lib/pdf-generator'
+import { formatToEcuador, ECUADOR_TIMEZONE } from '@/lib/date-utils'
 
 import Link from 'next/link'
 
@@ -675,16 +676,16 @@ export default function OperatorProjectClient({
   const formatDate = (date: Date | string | null | undefined) => {
     if (!date) return 'N/A'
     const d = typeof date === 'string' ? new Date(date) : date
-    return new Intl.DateTimeFormat('es-ES', { month: 'long', day: 'numeric', year: 'numeric' }).format(d)
+    return formatToEcuador(d, { month: 'long', day: 'numeric', year: 'numeric' })
   }
 
   const formatDateTime = (date: Date | string | null | undefined) => {
     if (!date) return 'N/A'
     const d = typeof date === 'string' ? new Date(date) : date
-    return new Intl.DateTimeFormat('es-ES', { 
+    return formatToEcuador(d, { 
       day: '2-digit', month: '2-digit', year: 'numeric',
       hour: '2-digit', minute: '2-digit' 
-    }).format(d)
+    })
   }
 
   const generateFichaPDF = () => {
@@ -698,7 +699,7 @@ export default function OperatorProjectClient({
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(100);
       doc.text(`ID Seguimiento: #${project.id}`, 20, 42);
-      doc.text(`Fecha de Impresión: ${new Date().toLocaleDateString('es-EC')}`, 145, 42);
+      doc.text(`Fecha de Impresión: ${formatToEcuador(new Date(), { day: '2-digit', month: '2-digit', year: 'numeric' })}`, 145, 42);
 
       let y = 55
       doc.setTextColor(0, 112, 192); // Aquatech Blue

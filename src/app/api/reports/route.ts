@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
+import { getLocalNow } from '@/lib/date-utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -108,7 +109,7 @@ export async function GET(req: Request) {
         }
         
         let start = record.startTime
-        let end = record.endTime || new Date() // If still working, calculate up to now
+        let end = record.endTime || getLocalNow() // If still working, calculate up to now in Guayaquil
         
         // Constrain to the requested date window to be accurate for "daily" reports
         if (start < startDate) start = startDate
