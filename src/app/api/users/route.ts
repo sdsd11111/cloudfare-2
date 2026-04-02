@@ -17,7 +17,7 @@ export async function GET(request: Request) {
     const roles = searchParams.get('roles')
 
     // Always filter by isActive: true to hide "deleted" (renamed) users
-    let whereClause: any = { isActive: true }
+    const whereClause: any = { isActive: true }
     if (roles) {
       whereClause.role = { in: roles.split(',') }
     } else if (role) {
@@ -130,8 +130,7 @@ export async function POST(request: Request) {
     // If we still get a P2002 here, it means we missed an inactive one during the rename script phase
     const isUniqueError = error.code === 'P2002'
     return NextResponse.json({ 
-      error: isUniqueError ? 'Error: Nombre de usuario duplicado (intenta otro).' : 'Error al registrar miembro',
-      details: error.message 
+      error: isUniqueError ? 'Error: Nombre de usuario duplicado (intenta otro).' : 'Error al registrar miembro'
     }, { status: 500 })
   }
 }

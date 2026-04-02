@@ -14,6 +14,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 })
     }
 
+    // 50MB limit to prevent storage abuse
+    const MAX_FILE_SIZE = 50 * 1024 * 1024
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json({ error: 'Archivo demasiado grande (máx. 50MB)' }, { status: 413 })
+    }
+
     const buffer = Buffer.from(await file.arrayBuffer())
     
     // Using a temp folder per user
@@ -33,6 +39,6 @@ export async function POST(req: Request) {
     })
   } catch (error: any) {
     console.error('File upload failed:', error)
-    return NextResponse.json({ error: error.message || 'File upload failed' }, { status: 500 })
+    return NextResponse.json({ error: 'Error al subir archivo' }, { status: 500 })
   }
 }

@@ -67,8 +67,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   } catch (error) {
     console.error('[API Messages ERROR]:', error)
     return NextResponse.json({ 
-      error: 'Error sending message',
-      details: error instanceof Error ? error.message : String(error)
+      error: 'Error interno al enviar mensaje'
     }, { status: 500 })
   }
 }

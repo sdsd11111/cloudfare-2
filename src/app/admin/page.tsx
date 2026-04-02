@@ -15,6 +15,9 @@ export default async function AdminDashboard() {
     redirect('/admin/subcontratista')
   }
 
+  // 7-day metric date
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+
   // Fetch all dashboard data server-side
   const [
     totalProjects,
@@ -88,18 +91,18 @@ export default async function AdminDashboard() {
     // 7-day metrics
     prisma.dayRecord.findMany({
       where: {
-        startTime: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
+        startTime: { gte: sevenDaysAgo }
       },
       select: { startTime: true, endTime: true }
     }),
     prisma.chatMessage.count({
       where: {
-        createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
+        createdAt: { gte: sevenDaysAgo }
       }
     }),
     prisma.expense.aggregate({
       where: {
-        createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
+        createdAt: { gte: sevenDaysAgo }
       },
       _sum: { amount: true }
     })

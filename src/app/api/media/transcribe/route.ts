@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     if (!response.ok) {
       const errorData = await response.json()
       console.error('Groq API Error:', errorData)
-      return NextResponse.json({ error: 'Error en la transcripción IA', details: errorData }, { status: response.status })
+      return NextResponse.json({ error: 'Error en la transcripción IA' }, { status: response.status })
     }
 
     const result = await response.json()
@@ -47,6 +47,6 @@ export async function POST(req: NextRequest) {
 
   } catch (error: any) {
     console.error('Transcription Route Error:', error)
-    return NextResponse.json({ error: 'Error interno del servidor', details: error.message }, { status: 500 })
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 })
   }
 }

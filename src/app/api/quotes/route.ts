@@ -4,19 +4,33 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 
 export async function GET(req: Request) {
-  const quotes = await prisma.quote.findMany({
-    include: {
-      client: { select: { name: true } },
-      project: { select: { title: true } }
-    },
-    orderBy: { createdAt: 'desc' }
-  })
-  return NextResponse.json(quotes)
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session || !session.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const quotes = await prisma.quote.findMany({
+      include: {
+        client: { select: { name: true } },
+        project: { select: { title: true } }
+      },
+      orderBy: { createdAt: 'desc' }
+    })
+    return NextResponse.json(quotes)
+  } catch (error) {
+    console.error('Error fetching quotes:', error)
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+  }
 }
 
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions)
+    if (!session || !session.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const data = await req.json()
     const items = data.items || []
     let finalClientId = data.clientId ? Number(data.clientId) : null

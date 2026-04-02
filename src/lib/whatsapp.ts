@@ -13,7 +13,7 @@ export async function sendWhatsAppMessage(phone: string, message: string) {
   }
 
   // Limpiar el número de teléfono (solo dígitos)
-  let cleanPhone = phone.replace(/\D/g, '');
+  const cleanPhone = phone.replace(/\D/g, '');
   
   // Asegurar que tenga el formato que Evolution API espera (ej: 593967491847)
   // Si no tiene código de país, podrías asumir uno por defecto, pero aquí confiamos en el DB.

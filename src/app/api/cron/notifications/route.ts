@@ -120,6 +120,6 @@ export async function GET(request: Request) {
 
   } catch (error: any) {
     console.error('Cron error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Cron execution error' }, { status: 500 });
   }
 }

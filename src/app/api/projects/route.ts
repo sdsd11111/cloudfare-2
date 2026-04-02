@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { getLocalNow } from '@/lib/date-utils'
+import { isAdmin, isOperator } from '@/lib/rbac'
 
 export async function GET(request: Request) {
   try {
@@ -18,16 +19,16 @@ export async function GET(request: Request) {
     const userRole = (session.user as any).role
     const userId = (session.user as any).id
 
-    let whereClause: any = {}
+    const whereClause: any = {}
     
     if (status && status !== 'ALL') {
       whereClause.status = status
     }
 
-    if (userRole === 'OPERATOR') {
+    if (isOperator(userRole)) {
       whereClause.team = {
         some: {
-          userId: userId
+          userId: Number(userId)
         }
       }
       if (!whereClause.status) {
@@ -76,13 +77,11 @@ export async function POST(request: Request) {
     const userRole = (session.user as any).role
     const userId = (session.user as any).id
 
-    const isAdmin = userRole === 'ADMIN' || userRole === 'ADMINISTRADORA' || userRole === 'ADMINISTRADOR'
-    const isOperator = userRole === 'OPERATOR' || userRole === 'OPERADOR'
-
-    if (!isAdmin && !isOperator) {
+    if (!isAdmin(userRole) && !isOperator(userRole)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const isOp = isOperator(userRole)
     const data = await request.json()
     const { 
       title, type, subtype, address, city, startDate, endDate, client, 
@@ -125,7 +124,7 @@ export async function POST(request: Request) {
           title,
           type: mappedType as any,
           subtype: subtype || null,
-          status: isOperator ? 'LEAD' : (status || 'ACTIVO'),
+          status: isOp ? 'LEAD' : (status || 'ACTIVO'),
           startDate: startDate ? new Date(startDate) : getLocalNow(),
           endDate: endDate ? new Date(endDate) : null,
           address: address || null,
@@ -162,7 +161,7 @@ export async function POST(request: Request) {
             }))
           },
           team: {
-            create: (!isOperator ? (team || []) : []).map((id: string | number) => ({
+            create: (!isOp ? (team || []) : []).map((id: string | number) => ({
               userId: Number(id)
             }))
           },
@@ -191,10 +190,9 @@ export async function POST(request: Request) {
     return NextResponse.json(project, { status: 201 })
   } catch (error: any) {
     console.error('Error creating project:', error)
-    return NextResponse.json({ 
-        error: 'Internal Server Error', 
-        details: error.message,
-        code: error.code
-    }, { status: 500 })
+    if (error.code === 'P2002') {
+      return NextResponse.json({ error: 'Error: Entrada duplicada detectada.' }, { status: 400 })
+    }
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }

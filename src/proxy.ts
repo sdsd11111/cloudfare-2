@@ -1,13 +1,41 @@
 import { withAuth } from "next-auth/middleware";
+import { NextResponse } from "next/server";
 
-const proxy = withAuth({
-  pages: {
-    signIn: "/admin/login",
+export default withAuth(
+  function middleware(req) {
+    return NextResponse.next();
   },
-});
+  {
+    callbacks: {
+      authorized: ({ token, req }) => {
+        const { pathname } = req.nextUrl;
 
-export { proxy };
+        // 🔏 PUBLIC PATHS — Always allowed without session
+        if (
+          pathname === "/admin/login" ||
+          pathname.startsWith("/api/auth") ||
+          pathname.startsWith("/api/cron") ||
+          pathname.startsWith("/_next") ||
+          pathname === "/favicon.ico" ||
+          pathname === "/manifest.json" ||
+          pathname === "/sw.js"
+        ) {
+          return true;
+        }
+
+        // 🔒 Everything else requires an active session token
+        return !!token;
+      },
+    },
+    pages: {
+      signIn: "/admin/login",
+    },
+  }
+);
 
 export const config = {
-  matcher: ["/admin/:path*"]
+  matcher: [
+    "/admin/:path*",
+    "/api/:path*",
+  ],
 };

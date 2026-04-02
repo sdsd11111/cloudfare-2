@@ -17,8 +17,6 @@ export const authOptions: AuthOptions = {
         const usernameInput = credentials.username.trim()
         const password = credentials.password
 
-        console.log('--- Intentando Login ---');
-        console.log('Username:', usernameInput);
 
         const user = await prisma.user.findFirst({
           where: { 
@@ -37,24 +35,19 @@ export const authOptions: AuthOptions = {
         }) as any
 
         if (!user) {
-          console.log('Login Fallido: Usuario no encontrado');
           return null
         }
 
         if (!user.isActive) {
-          console.log('Login Fallido: Usuario inactivo');
           return null
         }
 
-        console.log('Usuario encontrado, comparando password...');
         const isValid = await bcrypt.compare(password, user.passwordHash)
         
         if (!isValid) {
-          console.log('Login Fallido: Contraseña incorrecta');
           return null
         }
 
-        console.log('Login Exitoso para:', user.username);
 
         return {
           id: String(user.id),

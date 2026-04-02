@@ -1,0 +1,596 @@
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\DashboardClient.tsx
+  113:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\DashboardClient.tsx:113:5
+  111 |
+  112 |   useEffect(() => {
+> 113 |     setMounted(true)
+      |     ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  114 |   }, [])
+  115 |
+  116 |   const budgetPercent = stats.totalBudget > 0 ? Math.min((stats.totalSpent / stats.totalBudget) * 100, 100) : 0  react-hooks/set-state-in-effect
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\blog\page.tsx
+  13:47  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  63:34  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\calendario\AdminCalendarClient.tsx
+   8:14  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   9:13  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  13:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  16:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  38:46  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\calendario\page.tsx
+  11:37  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\cotizaciones\QuotesListClient.tsx
+   6:61  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  16:37  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  27:66  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  51:35  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\cotizaciones\compuesto\[id]\QuoteDetailClient.tsx
+    6:54  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   17:42  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  108:49  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\cotizaciones\compuesto\[id]\page.tsx
+  26:9   error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  28:9   error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  30:9   error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  32:9   error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  34:9   error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  36:9   error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  42:11  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\cotizaciones\materiales\MaterialsClient.tsx
+    6:75  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   11:58  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   16:41  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   22:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   54:42  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   69:43  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  104:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\cotizaciones\nuevo\QuoteFormClient.tsx
+    7:98  error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+   24:38  error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+   73:39  error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  128:36  error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  182:41  error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  188:60  error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  237:15  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  356:36  error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  470:46  error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\cotizaciones\nuevo\page.tsx
+  12:42  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  13:46  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  14:62  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  36:59  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\cotizaciones\offline\[id]\page.tsx
+  10:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\cotizaciones\offline\page.tsx
+  11:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\cotizaciones\page.tsx
+  39:9  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  41:9  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  43:9  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  45:9  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  47:9  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\inventario\InventarioClient.tsx
+    6:84   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  147:123  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  151:122  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\login\page.tsx
+  17:5   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\login\page.tsx:17:5
+  15 |
+  16 |   useEffect(() => {
+> 17 |     setIsOffline(!navigator.onLine)
+     |     ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  18 |     const handleStatus = () => setIsOffline(!navigator.onLine)
+  19 |     window.addEventListener('online', handleStatus)
+  20 |     window.addEventListener('offline', handleStatus)  react-hooks/set-state-in-effect
+  74:40  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-explicit-any
+  75:38  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\marketing\page.tsx
+  67:21  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  67:81  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\operador\OperatorDashboardClient.tsx
+   16:53  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   17:56  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   18:71  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   19:49  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   20:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   21:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   24:9   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   25:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   26:20  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   27:17  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   39:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   58:46  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   73:37  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  164:65  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\operador\nuevo\page.tsx
+   27:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   51:28  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   76:28  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  103:42  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  106:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  111:54  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  115:50  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  116:46  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  200:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  217:61  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  243:46  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  258:29  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  351:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\operador\page.tsx
+  62:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\operador\proyecto\[id]\page.tsx
+  32:43  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\page.tsx
+   91:36  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\page.tsx:91:36
+  89 |     prisma.dayRecord.findMany({
+  90 |       where: {
+> 91 |         startTime: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
+     |                                    ^^^^^^^^^^ Cannot call impure function
+  92 |       },
+  93 |       select: { startTime: true, endTime: true }
+  94 |     }),  react-hooks/purity
+   97:36  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\page.tsx:97:36
+   95 |     prisma.chatMessage.count({
+   96 |       where: {
+>  97 |         createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
+      |                                    ^^^^^^^^^^ Cannot call impure function
+   98 |       }
+   99 |     }),
+  100 |     prisma.expense.aggregate({               react-hooks/purity
+  102:36  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\page.tsx:102:36
+  100 |     prisma.expense.aggregate({
+  101 |       where: {
+> 102 |         createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
+      |                                    ^^^^^^^^^^ Cannot call impure function
+  103 |       },
+  104 |       _sum: { amount: true }
+  105 |     })                react-hooks/purity
+  148:42  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\proyectos\[id]\ProjectDetailClient.tsx
+    11:83  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+    17:83  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+    19:42  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+    44:54  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+    46:68  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   348:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   415:53  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   423:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   424:32  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   429:66  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   501:60  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   501:68  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   521:67  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   543:59  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   565:55  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   565:84  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   658:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   685:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   689:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   731:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   740:49  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   752:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   761:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   788:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   789:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1010:93  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1392:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1395:44  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1395:85  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1416:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1422:44  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1422:84  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1545:78  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1666:46  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1683:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1716:59  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1796:71  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1797:71  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  1798:24  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\proyectos\[id]\bitacora\BitacoraClient.tsx
+    6:62  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   18:62  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   27:45  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   48:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   93:37  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  112:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\proyectos\nuevo\page.tsx
+   27:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   51:28  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   76:28  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  103:42  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  106:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  111:54  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  115:50  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  116:46  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  214:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  231:61  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  257:46  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  272:29  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  365:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\proyectos\page.tsx
+    9:44   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  137:64   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  243:155  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\recursos\page.tsx
+  175:35  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\reportes\ReportesClient.tsx
+    6:80  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   13:42  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  172:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  189:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\subcontratista\SubcontratistaDashboardClient.tsx
+   16:53  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   17:56  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   18:71  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   19:49  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   20:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   21:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   22:51  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   25:9   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   26:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   27:20  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   28:17  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   40:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   59:46  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   74:37  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  164:65  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\subcontratista\proyecto\[id]\page.tsx
+  32:43  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\team\[id]\page.tsx
+   17:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   18:49  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   19:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   20:53  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   21:57  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   22:51  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   23:49  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   24:53  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   25:50  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   26:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   27:50  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   28:47  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   29:50  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   30:50  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   31:53  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   32:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   43:50  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   44:79  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   46:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   47:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   61:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   62:50  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   64:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  120:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  130:43  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  142:58  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  143:56  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  144:64  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  147:30  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  154:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  155:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  189:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  207:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  214:46  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  238:39  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  478:41  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  504:53  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  512:41  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  534:59  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\team\[id]\proyecto\[projectId]\UserProjectActivityClient.tsx
+   13:53  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   14:57  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   15:51  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   16:49  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   17:50  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   18:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   19:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   20:53  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   27:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   28:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   29:42  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   53:47  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   56:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   67:43  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   80:34  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   87:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   89:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  122:58  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  193:56  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  206:39  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  243:61  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\admin\team\page.tsx
+    8:38   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   68:19   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   95:29   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  287:59   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  287:112  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\api\admin\users\[id]\security\logout\route.ts
+  14:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  14:87  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  22:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\api\admin\users\[id]\security\password\route.ts
+  15:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  15:87  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  31:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\api\appointments\[id]\route.ts
+  29:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  29:80  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  34:17  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  76:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  76:80  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\api\appointments\route.ts
+  19:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  19:80  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  20:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  69:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  69:80  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\api\blog\route.ts
+   8:60  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  64:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\api\clients\route.ts
+  9:70  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\api\cron\notifications\route.ts
+  121:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\api\media\transcribe\route.ts
+  27:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  48:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\api\projects\[id]\expenses\route.ts
+  17:39  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  93:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\api\projects\[id]\gallery\[galleryId]\route.ts
+  12:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  37:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\api\projects\[id]\gallery\route.ts
+  37:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\api\projects\[id]\route.ts
+  13:39  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  22:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  68:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  81:39  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  93:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\api\projects\route.ts
+   19:39  error  Unexpected any. Specify a different type                @typescript-eslint/no-explicit-any
+   20:37  error  Unexpected any. Specify a different type                @typescript-eslint/no-explicit-any
+   22:9   error  'whereClause' is never reassigned. Use 'const' instead  prefer-const
+   22:22  error  Unexpected any. Specify a different type                @typescript-eslint/no-explicit-any
+   77:39  error  Unexpected any. Specify a different type                @typescript-eslint/no-explicit-any
+   78:37  error  Unexpected any. Specify a different type                @typescript-eslint/no-explicit-any
+  125:31  error  Unexpected any. Specify a different type                @typescript-eslint/no-explicit-any
+  134:81  error  Unexpected any. Specify a different type                @typescript-eslint/no-explicit-any
+  145:52  error  Unexpected any. Specify a different type                @typescript-eslint/no-explicit-any
+  155:48  error  Unexpected any. Specify a different type                @typescript-eslint/no-explicit-any
+  170:51  error  Unexpected any. Specify a different type                @typescript-eslint/no-explicit-any
+  191:19  error  Unexpected any. Specify a different type                @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\api\quotes\[id]\route.ts
+  69:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\api\quotes\route.ts
+  70:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\api\reports\route.ts
+  22:9   error  'projectWhere' is never reassigned. Use 'const' instead  prefer-const
+  22:23  error  Unexpected any. Specify a different type                 @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\api\upload\route.ts
+  34:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\api\users\[id]\activity\route.ts
+  13:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  59:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\api\users\[id]\projects\[projectId]\activity\route.ts
+  13:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  57:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\api\users\[id]\route.ts
+  13:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  69:44  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  81:30  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  82:30  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\api\users\route.ts
+   20:9   error  'whereClause' is never reassigned. Use 'const' instead                                                               prefer-const
+   20:22  error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+   55:57  error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+   71:19  error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+   80:47  error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  128:19  error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  142:47  error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  181:13  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  256:19  error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\blog\[slug]\page.tsx
+  110:39  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\app\blog\page.tsx
+  87:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\components\Calendar\AppointmentModal.tsx
+   9:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  10:17  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  12:13  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  13:15  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\components\Calendar\CalendarView.tsx
+  13:55  error  Unexpected any. Specify a different type             @typescript-eslint/no-explicit-any
+  14:56  error  Unexpected any. Specify a different type             @typescript-eslint/no-explicit-any
+  15:48  error  Unexpected any. Specify a different type             @typescript-eslint/no-explicit-any
+  18:11  error  Unexpected any. Specify a different type             @typescript-eslint/no-explicit-any
+  20:24  error  Unexpected any. Specify a different type             @typescript-eslint/no-explicit-any
+  44:9   error  'startDay' is never reassigned. Use 'const' instead  prefer-const
+  90:23  error  Unexpected any. Specify a different type             @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\components\GlobalSyncWorker.tsx
+  19:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  20:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  64:59  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  75:55  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\components\MediaCapture.tsx
+   11:29  error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   12:31  error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   13:32  error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   14:30  error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   15:32  error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   16:44  error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   17:38  error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   41:27  error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  299:15  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  299:31  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\components\ProjectExecutionClient.tsx
+    29:4    error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+    36:68   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+    41:19   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+    42:35   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   151:52   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   227:40   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   329:21   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   456:21   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   549:21   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   637:19   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   638:20   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   638:46   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   654:22   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   655:19   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   672:50   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   683:20   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   684:17   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   694:53   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   750:19   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   771:19   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   773:49   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   885:182  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  1003:51   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  1210:69   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  1242:68   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  1277:45   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  1297:60   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  1330:47   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  1378:43   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  1422:41   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  1440:40   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  1538:200  error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\components\ProjectUploader.tsx
+  11:37  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  12:35  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  13:35  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  14:34  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  15:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  16:32  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  17:32  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\components\Sidebar.tsx
+  137:50  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  261:14  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\components\blog\BlogEditor.tsx
+  59:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\lib\auth.ts
+   36:16  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   37:15  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   73:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   74:33  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   75:35  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   76:41  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   89:65  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   90:17  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  109:24  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  113:35  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\lib\bunny.ts
+  20:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\lib\db.ts
+  7:12  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\lib\pdf-generator.ts
+  147:10  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  276:24  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  378:12  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  381:9   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  382:13  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  435:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Abel paginas\Aquatech\Crm Aquatech\src\lib\whatsapp.ts
+  16:7   error  'cleanPhone' is never reassigned. Use 'const' instead  prefer-const
+  45:19  error  Unexpected any. Specify a different type               @typescript-eslint/no-explicit-any
+
+✖ 393 problems (393 errors, 0 warnings)
+  5 errors and 0 warnings potentially fixable with the `--fix` option.
+

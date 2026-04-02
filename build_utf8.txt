@@ -1,0 +1,62 @@
+﻿
+> aquatech-crm@0.1.0 build
+> next build
+
+node.exe : ÔÜá Warning: 
+Next.js inferred your 
+workspace root, but it may 
+not be correct.
+En línea: 1 Carácter: 1
++ & "C:\Program 
+Files\nodejs/node.exe" "C:\
+Users\Smart\AppData\Roaming
+\ ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+    + CategoryInfo         
+     : NotSpecified: (ÔÜá  
+   Warning: Ne...not be    
+ correct.:String) [], R    
+emoteException
+    + FullyQualifiedErrorI 
+   d : NativeCommandError
+ 
+ We detected multiple 
+lockfiles and selected the 
+directory of D:\Abel 
+paginas\package-lock.json 
+as the root directory.
+ To silence this warning, 
+set `turbopack.root` in 
+your Next.js config, or 
+consider removing one of 
+the lockfiles if it's not 
+needed.
+   See https://nextjs.org/d
+ocs/app/api-reference/confi
+g/next-config-js/turbopack#
+root-directory for more 
+information.
+ Detected additional 
+lockfiles: 
+   * D:\Abel 
+paginas\Aquatech\Crm 
+Aquatech\package-lock.json
+
+Ôû▓ Next.js 16.2.1 (Turbopack)
+- Environments: .env
+
+
+> Build error occurred
+Error: Both middleware 
+file 
+"./src\src\middleware.ts" 
+and proxy file 
+"./src\src\proxy.ts" are 
+detected. Please use 
+"./src\src\proxy.ts" only. 
+Learn more: https://nextjs.
+org/docs/messages/middlewar
+e-to-proxy
+    at ignore-listed frames

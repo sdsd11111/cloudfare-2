@@ -67,7 +67,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json(updated)
   } catch (error: any) {
     console.error('Error updating project:', error)
-    return NextResponse.json({ error: 'Internal Server Error', details: error.message }, { status: 500 })
+    return NextResponse.json({ error: 'Error interno al actualizar proyecto' }, { status: 500 })
   }
 }
 
@@ -92,6 +92,6 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     return NextResponse.json({ success: true })
   } catch (error: any) {
     console.error('Error deleting project:', error)
-    return NextResponse.json({ error: 'Internal Server Error', details: error.message }, { status: 500 })
+    return NextResponse.json({ error: 'Error interno al eliminar proyecto' }, { status: 500 })
   }
 }

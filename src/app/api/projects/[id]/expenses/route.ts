@@ -4,16 +4,34 @@ import { authOptions } from '@/lib/auth'
 import { NextResponse } from 'next/server'
 import { uploadToBunny } from '@/lib/bunny'
 import { getLocalNow } from '@/lib/date-utils'
+import { isAdmin } from '@/lib/rbac'
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
     const session = await getServerSession(authOptions)
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!session || !session.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
       
-    const { amount, description, date, createdAt, lat, lng, receiptPhoto, isNote } = await req.json()
     const projectId = Number(id)
     const userId = Number(session.user.id)
+    const userRole = (session.user as any).role
+
+    // 🔒 Security Check: Verify user belongs to the project team OR is Admin
+    if (!isAdmin(userRole)) {
+      const isMember = await prisma.projectTeam.findUnique({
+        where: {
+          projectId_userId: {
+            projectId,
+            userId
+          }
+        }
+      })
+      if (!isMember) {
+        return NextResponse.json({ error: 'No tienes acceso a este proyecto' }, { status: 403 })
+      }
+    }
+
+    const { amount, description, date, createdAt, lat, lng, receiptPhoto, isNote } = await req.json()
     const expenseDate = new Date(date || createdAt || getLocalNow())
 
     let receiptUrl = null
@@ -72,8 +90,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     })
 
     return NextResponse.json(expense)
-  } catch (error) {
-    console.error(error)
-    return NextResponse.json({ error: 'Error creating expense' }, { status: 500 })
+  } catch (error: any) {
+    console.error('Expense Creation Error:', error)
+    return NextResponse.json({ error: 'Error interno al procesar el gasto' }, { status: 500 })
   }
 }

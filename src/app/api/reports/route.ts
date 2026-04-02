@@ -1,11 +1,22 @@
 import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 import { getLocalNow } from '@/lib/date-utils'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { isAdmin } from '@/lib/rbac'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: Request) {
   try {
+    const session = await getServerSession(authOptions)
+    if (!session || !session.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    if (!isAdmin((session.user as any).role)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     const { searchParams } = new URL(req.url)
     const startDateStr = searchParams.get('startDate')
     const endDateStr = searchParams.get('endDate')
@@ -19,7 +30,7 @@ export async function GET(req: Request) {
     const endDate = new Date(endDateStr)
     endDate.setHours(23, 59, 59, 999)
 
-    let projectWhere: any = {}
+    const projectWhere: any = {}
     if (projectIdStr && projectIdStr !== 'ALL') {
       projectWhere.id = Number(projectIdStr)
     } else {
