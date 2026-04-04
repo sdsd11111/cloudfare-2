@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { getLocalNow, formatToEcuador, formatTimeEcuador, formatDateEcuador } from '@/lib/date-utils'
+import { getLocalNow, formatToEcuador, formatTimeEcuador, formatDateEcuador, toEcuadorISODate } from '@/lib/date-utils'
 
 // Inline SVG icons to match project pattern and avoid lucide-react issues
 const svgProps = (size: number, style?: React.CSSProperties, className?: string) => ({
@@ -79,11 +79,11 @@ export default function CalendarView({
 
   const getEventsForDay = (day: Date) => {
     if (!day) return []
+    // Compare using Ecuador timezone to avoid UTC day mismatch
+    const dayStr = toEcuadorISODate(day)
     return events.filter(e => {
-        const eventDate = new Date(e.startTime)
-        return eventDate.getDate() === day.getDate() &&
-               eventDate.getMonth() === day.getMonth() &&
-               eventDate.getFullYear() === day.getFullYear()
+        const eventDayStr = toEcuadorISODate(e.startTime)
+        return eventDayStr === dayStr
     })
   }
 

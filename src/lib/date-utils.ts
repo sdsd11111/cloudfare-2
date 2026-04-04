@@ -53,8 +53,16 @@ export function formatDateLongEcuador(date: Date | string | number | null | unde
  */
 export function forceEcuadorTZ(dtStr: string | null | undefined): string {
   if (!dtStr) return '';
-  if (dtStr.includes('Z') || dtStr.includes('-0') || dtStr.includes('+')) return dtStr;
-  // dtStr formato normal es YYYY-MM-DDTHH:mm, le agregamos segundos y offset
+  // If it already has a timezone indicator, don't double-apply
+  if (dtStr.endsWith('Z')) return dtStr;
+  // Check for offset only in the TIME part (after T), not in the date part where '-' is a separator
+  const tIndex = dtStr.indexOf('T');
+  if (tIndex !== -1) {
+    const timePart = dtStr.substring(tIndex);
+    // Look for +HH:MM or -HH:MM offset pattern in the time portion
+    if (/[+-]\d{2}:\d{2}$/.test(timePart)) return dtStr;
+  }
+  // dtStr format is YYYY-MM-DDTHH:mm, append seconds and Ecuador offset
   return dtStr + ':00-05:00';
 }
 
