@@ -39,9 +39,16 @@ export async function POST(req: NextRequest) {
     })
 
     if (!response.ok) {
-      const errorData = await response.json()
-      console.error('Groq API Error:', errorData)
-      return NextResponse.json({ error: 'Error en la transcripción IA' }, { status: response.status })
+      const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }))
+      console.error('Groq API Error Detail:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorData
+      })
+      return NextResponse.json({ 
+        error: 'Error en la transcripción IA', 
+        details: errorData.error?.message || 'Error en la API de Groq'
+      }, { status: response.status })
     }
 
     const result = await response.json()

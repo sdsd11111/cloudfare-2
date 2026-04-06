@@ -40,7 +40,26 @@ export default function MediaCapture({
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const timerRef = useRef<any>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
+  const [stream, setStream] = useState<MediaStream | null>(null)
+  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment')
   const chunksRef = useRef<Blob[]>([])
+
+  // Preview management
+  useEffect(() => {
+    if (mode === 'video' && videoRef.current && stream && isRecording) {
+      videoRef.current.srcObject = stream
+    }
+  }, [stream, isRecording, mode])
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop())
+      }
+      stopTimer()
+    }
+  }, [stream])
 
   const getSupportedMimeType = (mediaType: 'audio' | 'video'): string => {
     const candidates = mediaType === 'video'
@@ -57,18 +76,25 @@ export default function MediaCapture({
 
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
+      // Clear previous stream if any
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop())
+      }
+
+      const newStream = await navigator.mediaDevices.getUserMedia({
         audio: true,
-        video: mode === 'video' ? { facingMode: 'environment' } : false
+        video: mode === 'video' ? { facingMode } : false
       })
 
+      setStream(newStream)
+
       if (mode === 'video' && videoRef.current) {
-        videoRef.current.srcObject = stream
+        videoRef.current.srcObject = newStream
       }
 
       const supportedMime = getSupportedMimeType(mode)
       const options: MediaRecorderOptions = supportedMime ? { mimeType: supportedMime } : {}
-      const recorder = new MediaRecorder(stream, options)
+      const recorder = new MediaRecorder(newStream, options)
       const actualMime = recorder.mimeType || (mode === 'video' ? 'video/webm' : 'audio/webm')
       
       recorder.ondataavailable = (e) => {
@@ -84,7 +110,9 @@ export default function MediaCapture({
         await handleTranscription(blob)
         
         // Clean up stream
-        stream.getTracks().forEach(track => track.stop())
+        // Clean up stream
+        newStream.getTracks().forEach(track => track.stop())
+        setStream(null)
       }
 
       chunksRef.current = []
@@ -294,6 +322,25 @@ export default function MediaCapture({
             title="Detener grabación"
           >
             <Square size={compact ? 18 : 24} />
+          </button>
+        )}
+
+        {mode === 'video' && !isRecording && !transcription && (
+          <button
+            type="button"
+            onClick={() => setFacingMode(prev => prev === 'user' ? 'environment' : 'user')}
+            className="btn-secondary"
+            style={{ 
+              fontSize: '0.75rem', 
+              padding: '4px 12px', 
+              borderRadius: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 12c0-1.66 4-3 9-3s9 1.34 9 3"/><path d="M5 7s1 5 1 9"/><path d="M19 7s-1 5-1 9"/><path d="M15 5c0 1.1-1.34 2-3 2s-3-.9-3-2 1.34-2 3-2 3 .9 3 2z"/></svg>
+            Cámara: {facingMode === 'user' ? 'Frontal' : 'Trasera'}
           </button>
         )}
 

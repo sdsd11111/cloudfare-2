@@ -733,7 +733,8 @@ export default function NuevoProyectoPage() {
                         
                         // Upload audio to gallery
                         const formData = new FormData()
-                        formData.append('file', blob, 'nota_de_voz.webm')
+                        const fileName = `nota_voz_${Date.now()}.webm`
+                        formData.append('file', blob, fileName)
                         try {
                           const res = await fetch('/api/upload', { method: 'POST', body: formData })
                           if (res.ok) {
@@ -760,14 +761,20 @@ export default function NuevoProyectoPage() {
                         
                         // Upload video to gallery
                         const formData = new FormData()
-                        formData.append('file', blob, 'especificacion_tecnica.webm')
+                        const fileName = `video_especificacion_${Date.now()}.webm`
+                        formData.append('file', blob, fileName)
                         try {
+                          console.log('Iniciando subida de video a galería...', fileName)
                           const res = await fetch('/api/upload', { method: 'POST', body: formData })
                           if (res.ok) {
                             const data = await res.json()
+                            console.log('Video subido con éxito:', data)
                             setUploadedFiles(prev => [...prev, data])
+                          } else {
+                            const errorText = await res.text()
+                            console.error('Error en respuesta de subida de video:', errorText)
                           }
-                        } catch (err) { console.error('Video upload failed', err) }
+                        } catch (err) { console.error('Excepción al subir video:', err) }
                       }}
                     />
                   </div>
