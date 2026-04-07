@@ -123,9 +123,14 @@ export async function POST(request: Request) {
       }
 
       // 2. Map Legacy Type from CategoryList if needed
-      const mappedType = (categoryList && Array.isArray(categoryList) && categoryList.length > 0) 
+      let mappedType = (categoryList && Array.isArray(categoryList) && categoryList.length > 0) 
         ? categoryList[0] 
         : (type || 'OTRO')
+        
+      const validTypes = ['PISCINA', 'JACUZZI', 'BOMBAS', 'TRATAMIENTO', 'RIEGO', 'CALENTAMIENTO', 'CONTRA_INCENDIOS', 'MANTENIMIENTO', 'INSTALLATION', 'REPAIR', 'OTRO']
+      if (!validTypes.includes(mappedType)) {
+        mappedType = 'OTRO'
+      }
 
       // 3. Create Project
       const newProject = await tx.project.create({

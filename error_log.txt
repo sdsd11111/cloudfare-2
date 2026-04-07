@@ -1,0 +1,35 @@
+PrismaClientValidationError: 
+Invalid `prisma.project.create()` invocation:
+
+{
+  data: {
+    title: "Test Error 500",
+    type: "OTHER",
+          ~~~~~~~
+    subtype: "Test",
+    status: "LEAD",
+    startDate: new Date("2026-04-07T00:33:12.812Z"),
+    address: null,
+    city: null,
+    clientId: 43,
+    createdBy: 1,
+    estimatedBudget: 0,
+    categoryList: "[\"OTRO\"]",
+    contractTypeList: "[\"OTHER\"]",
+    technicalSpecs: "{\"description\":\"test\"}",
+    budgetItems: {
+      create: []
+    },
+    phases: {
+      create: []
+    },
+    team: {
+      create: []
+    },
+    gallery: {
+      create: []
+    }
+  }
+}
+
+Invalid value for argument `type`. Expected ProjectType.

@@ -11,7 +11,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     }
 
     const userRole = (session.user as any).role
-    if (userRole !== 'ADMIN' && userRole !== 'ADMINISTRADORA') {
+    if (userRole !== 'SUPERADMIN' && userRole !== 'ADMIN' && userRole !== 'ADMINISTRADORA') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
