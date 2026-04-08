@@ -36,6 +36,10 @@ export default function SubcontratistaDashboardClient({
   const [activeTab, setActiveTab] = useState<'PROYECTOS' | 'TAREAS' | 'CALENDARIO'>('TAREAS')
   const [appointments, setAppointments] = useState(initialAppointments)
 
+  const totalUnread = useMemo(() => {
+    return activeProjects.reduce((acc, p) => acc + (p.unreadCount || 0), 0)
+  }, [activeProjects])
+
   const todayTasks = useMemo(() => {
     const today = getLocalNow()
     return appointments
@@ -91,6 +95,7 @@ export default function SubcontratistaDashboardClient({
         </button>
         <button className={`tab ${activeTab === 'PROYECTOS' ? 'active' : ''}`} onClick={() => setActiveTab('PROYECTOS')}>
            <Briefcase size={16} style={{marginRight: '8px'}}/> Mis Trabajos ({activeProjects.length})
+           {totalUnread > 0 && <span className="tab-badge">{totalUnread}</span>}
         </button>
         <button className={`tab ${activeTab === 'CALENDARIO' ? 'active' : ''}`} onClick={() => setActiveTab('CALENDARIO')}>
            <CalendarIcon size={16} style={{marginRight: '8px'}}/> Agenda Semanal
@@ -150,7 +155,14 @@ export default function SubcontratistaDashboardClient({
                     </span>
                     <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{project.phases.length} fases</span>
                   </div>
-                  <h3 style={{ margin: '0 0 10px 0', fontSize: '1.1rem', color: 'var(--text)' }}>{project.title}</h3>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                    <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text)', flex: 1 }}>{project.title}</h3>
+                    {project.unreadCount > 0 && (
+                      <span className="unread-dot-badge" title="Mensajes sin leer">
+                        {project.unreadCount}
+                      </span>
+                    )}
+                  </div>
                   <div style={{ marginTop: 'auto' }}>
                     <div className="progress-bar" style={{ height: '4px' }}>
                       <div className="progress-fill" style={{ width: `${progress}%` }}></div>
@@ -177,7 +189,32 @@ export default function SubcontratistaDashboardClient({
               onEditEvent={() => {}}
               viewMode="WEEK"
             />
-          </div>
+            <style jsx>{`
+        .tab-badge {
+          background: var(--danger);
+          color: white;
+          font-size: 0.7rem;
+          padding: 2px 6px;
+          border-radius: 10px;
+          margin-left: 8px;
+          font-weight: bold;
+        }
+        .unread-dot-badge {
+          background: var(--danger);
+          color: white;
+          font-size: 0.75rem;
+          min-width: 20px;
+          height: 20px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 10px;
+          font-weight: bold;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          margin-left: 10px;
+        }
+      `}</style>
+    </div>
         )}
       </div>
     </div>

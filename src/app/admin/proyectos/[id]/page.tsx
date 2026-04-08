@@ -58,6 +58,24 @@ export default async function ProyectoDetallePage({ params }: { params: Promise<
     select: { id: true, name: true, phone: true }
   })
 
+  // Mark as seen for this user
+  await prisma.projectView.upsert({
+    where: { 
+      userId_projectId: { 
+        userId: Number(session.user.id), 
+        projectId 
+      } 
+    },
+    create: { 
+      userId: Number(session.user.id), 
+      projectId,
+      lastSeen: new Date()
+    },
+    update: { 
+      lastSeen: new Date() 
+    }
+  })
+
   // Serialize to plain JSON to handle Prisma Decimal objects
   const serializedProject = JSON.parse(JSON.stringify(project))
 

@@ -46,12 +46,34 @@ export async function GET(request: Request) {
         estimatedBudget: true,
         client: { select: { name: true } },
         phases: { select: { status: true, estimatedDays: true } },
-        team: { select: { id: true } }
+        team: { select: { id: true, userId: true } }
       },
       orderBy: { createdAt: 'desc' }
     })
 
-    return NextResponse.json(projects)
+    // Fetch views for this user
+    const views = await prisma.projectView.findMany({
+      where: { userId: Number(userId), projectId: { in: projects.map(p => p.id) } }
+    })
+
+    // Map to include unreadCount
+    const projectsWithCounts = await Promise.all(projects.map(async (project) => {
+      const view = views.find(v => v.projectId === project.id)
+      const unreadCount = await prisma.chatMessage.count({
+        where: {
+          projectId: project.id,
+          createdAt: { gt: view ? view.lastSeen : project.createdAt },
+          userId: { not: Number(userId) } // Don't count my own messages
+        }
+      })
+
+      return {
+        ...project,
+        unreadCount
+      }
+    }))
+
+    return NextResponse.json(projectsWithCounts)
   } catch (error) {
     console.error('Error fetching projects:', error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })

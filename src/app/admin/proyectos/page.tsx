@@ -246,7 +246,36 @@ export default function ProyectosPage() {
                       </div>
                     </div>
 
-                    <h3 style={{ margin: '0 0 8px 0', fontSize: '1.3rem', fontWeight: '800', lineHeight: '1.3', color: '#FFFFFF' }}>{p.title}</h3>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 8px 0' }}>
+                      <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: '800', lineHeight: '1.3', color: '#FFFFFF' }}>{p.title}</h3>
+                      {p.unreadCount > 0 && (
+                        <span style={{
+                          backgroundColor: '#EF4444',
+                          color: '#FFFFFF',
+                          fontSize: '0.75rem',
+                          fontWeight: '900',
+                          padding: '2px 8px',
+                          borderRadius: '12px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          minWidth: '22px',
+                          boxShadow: '0 0 12px rgba(239, 68, 68, 0.4)',
+                          animation: 'pulse-red 2s infinite'
+                        }}>
+                          {p.unreadCount}
+                        </span>
+                      )}
+                    </div>
+
+                    <style jsx>{`
+                      @keyframes pulse-red {
+                        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+                        70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+                        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+                      }
+                    `}</style>
+
                     <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem', marginBottom: '24px' }}>
                       {p.client?.name || 'Cliente sin asignar'}
                     </p>

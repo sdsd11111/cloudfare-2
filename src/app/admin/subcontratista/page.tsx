@@ -27,7 +27,7 @@ export default async function SubcontratistaDashboard() {
   const userId = Number(session.user.id)
 
   // Fetch data in parallel — only projects, appointments (tasks), and active day record
-  const [activeProjects, activeDayRecord, appointments] = await Promise.all([
+  const [activeProjects, activeDayRecord, appointments, userViews] = await Promise.all([
     prisma.project.findMany({
       where: {
         team: { some: { userId } },
@@ -54,13 +54,35 @@ export default async function SubcontratistaDashboard() {
         where: { userId },
         orderBy: { startTime: 'asc' },
         include: { project: { select: { title: true } } }
+    }),
+    prisma.projectView.findMany({
+      where: { userId }
     })
   ])
+
+  // Calculate unread counts for each project
+  const projectsWithUnread = await Promise.all(activeProjects.map(async (project: any) => {
+    const view = userViews.find((v: any) => v.projectId === project.id);
+    const lastSeen = view?.lastSeen || new Date(0);
+
+    const unreadCount = await prisma.chatMessage.count({
+      where: {
+        projectId: project.id,
+        userId: { not: userId },
+        createdAt: { gt: lastSeen }
+      }
+    });
+
+    return {
+      ...project,
+      unreadCount
+    };
+  }));
 
   return (
     <SubcontratistaDashboardClient 
       user={session.user}
-      activeProjects={deepSerialize(activeProjects)}
+      activeProjects={deepSerialize(projectsWithUnread)}
       activeDayRecord={deepSerialize(activeDayRecord)}
       appointments={deepSerialize(appointments)}
     />
