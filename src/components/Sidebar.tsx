@@ -124,6 +124,20 @@ const adminNavItems: NavSection[] = [
       },
     ],
   },
+  {
+    section: 'SISTEMA',
+    items: [
+      {
+        label: 'Conectar Telefono',
+        href: '/admin/whatsapp',
+        icon: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+          </svg>
+        ),
+      },
+    ],
+  },
 ]
 
 import { useLocalStorage } from '@/hooks/useLocalStorage'
@@ -265,11 +279,8 @@ export default function Sidebar() {
   const filteredAdminNavItems = adminNavItems.map(section => ({
     ...section,
     items: section.items.filter(item => {
-      // 1. Permission check based on label/slug
       const moduleSlug = item.label.toLowerCase().replace(/\s+/g, '_')
       
-      // Special case for 'gestión_de_equipo' or other nesting if needed
-      // But for simplicity, we map labels to our standard slugs
       const slugMap: Record<string, string> = {
         'dashboard': 'dashboard',
         'marketing': 'marketing',
@@ -278,7 +289,8 @@ export default function Sidebar() {
         'proyectos': 'proyectos',
         'cotizaciones': 'cotizaciones',
         'inventario': 'inventario',
-        'recursos': 'recursos'
+        'recursos': 'recursos',
+        'conectar_telefono': 'whatsapp'
       }
       
       const slug = slugMap[moduleSlug] || moduleSlug
@@ -289,7 +301,7 @@ export default function Sidebar() {
 
       return true
     })
-  }))
+  })).filter(section => section.items.length > 0)
 
   const filteredOperatorNavItems = dynamicOperatorNavItems.map(section => ({
     ...section,
