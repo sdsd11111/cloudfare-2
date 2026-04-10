@@ -497,17 +497,32 @@ export default function ProjectDetailClient({ project, availableOperators = [] }
     setIsSavingPhases(true)
     try {
       for (const phase of editingPhases) {
-        const resp = await fetch(`/api/projects/${project.id}/phases/${phase.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title: phase.title,
-            description: phase.description,
-            estimatedDays: phase.estimatedDays,
-            status: phase.status
+        if (phase.isNew) {
+          const resp = await fetch(`/api/projects/${project.id}/phases`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              title: phase.title,
+              description: phase.description,
+              estimatedDays: phase.estimatedDays,
+              status: phase.status,
+              displayOrder: editingPhases.indexOf(phase) + 1
+            })
           })
-        })
-        if (!resp.ok) console.error(`Error updating phase ${phase.id}`)
+          if (!resp.ok) console.error(`Error creating new phase ${phase.title}`)
+        } else {
+          const resp = await fetch(`/api/projects/${project.id}/phases/${phase.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              title: phase.title,
+              description: phase.description,
+              estimatedDays: phase.estimatedDays,
+              status: phase.status
+            })
+          })
+          if (!resp.ok) console.error(`Error updating phase ${phase.id}`)
+        }
       }
       setIsEditingPhases(false)
       router.refresh()
@@ -1147,7 +1162,7 @@ export default function ProjectDetailClient({ project, availableOperators = [] }
         <div style={{ textAlign: 'right' }}>
           <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Subtotal: $ {theoreticalBudget.toFixed(2)}</div>
           <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>IVA 15%: $ {ivaAmount.toFixed(2)}</div>
-          <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '4px' }}>Total a Pagar</div>
+          <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '4px' }}>Total a cobrar</div>
           <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary)' }}>
             $ {grandTotal.toFixed(2)}
           </div>
@@ -1468,7 +1483,7 @@ export default function ProjectDetailClient({ project, availableOperators = [] }
               <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--text)' }}>$ {ivaAmount.toFixed(2)}</div>
             </div>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600', marginBottom: '4px' }}>Total a Pagar</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600', marginBottom: '4px' }}>Total a cobrar</div>
               <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary)' }}>$ {grandTotal.toFixed(2)}</div>
             </div>
             <div style={{ textAlign: 'center' }}>
@@ -1855,6 +1870,13 @@ export default function ProjectDetailClient({ project, availableOperators = [] }
               </button>
             ) : (
               <div style={{ display: 'flex', gap: '8px' }}>
+                <button 
+                  onClick={() => setEditingPhases([...editingPhases, { id: 'new_' + Date.now(), title: '', description: '', estimatedDays: 0, status: 'PENDIENTE', isNew: true }])} 
+                  className="btn btn-secondary btn-sm" 
+                  disabled={isSavingPhases}
+                >
+                  + Agregar Fase
+                </button>
                 <button onClick={() => setIsEditingPhases(false)} className="btn btn-ghost btn-sm" disabled={isSavingPhases}>Cancelar</button>
                 <button onClick={handleSavePhases} className="btn btn-primary btn-sm" disabled={isSavingPhases}>{isSavingPhases ? 'Guardando...' : 'Guardar Cambios'}</button>
               </div>
@@ -1952,6 +1974,16 @@ export default function ProjectDetailClient({ project, availableOperators = [] }
                           className="form-input"
                           style={{ width: '80px', fontSize: '0.8rem' }}
                         />
+                        {phase.isNew && (
+                          <button 
+                            type="button"
+                            className="btn btn-ghost btn-sm"
+                            style={{ color: 'var(--danger)', marginLeft: 'auto' }}
+                            onClick={() => setEditingPhases(editingPhases.filter((_, i) => i !== idx))}
+                          >
+                            Quitar Fase
+                          </button>
+                        )}
                       </div>
                     </div>
                   )}
@@ -2042,7 +2074,7 @@ export default function ProjectDetailClient({ project, availableOperators = [] }
             {/* Barra Teórica */}
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '0.9rem', alignItems: 'center' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Presupuesto (Teórico)</span>
+                <span style={{ color: 'var(--text-muted)' }}>Total a cobrar</span>
                 {isEditingBudget ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                     <input 
@@ -2057,7 +2089,7 @@ export default function ProjectDetailClient({ project, availableOperators = [] }
                   </div>
                 ) : (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                    <span style={{ fontWeight: 'bold' }}>$ {theoreticalBudget.toFixed(2)}</span>
+                    <span style={{ fontWeight: 'bold' }}>$ {grandTotal.toFixed(2)}</span>
                     <button 
                       onClick={() => setIsEditingBudget(true)}
                       title="Editar Presupuesto"

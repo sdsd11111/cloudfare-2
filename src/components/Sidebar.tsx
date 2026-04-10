@@ -295,6 +295,10 @@ export default function Sidebar() {
       
       const slug = slugMap[moduleSlug] || moduleSlug
       
+      if (slug === 'whatsapp' && effectiveRole !== 'SUPERADMIN') {
+        return false
+      }
+      
       if (!hasModuleAccess(userPermissions, slug, effectiveRole)) {
         return false
       }

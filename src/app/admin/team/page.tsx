@@ -126,7 +126,8 @@ export default function TeamPage() {
   // Filter groups
   // Only SuperAdmin sees other SuperAdmins (API also filters this, but safeguard here)
   const management = users.filter(u => {
-    return u.role === 'SUPERADMIN' || u.role === 'ADMIN' || u.role === 'ADMINISTRADORA'
+    if (!isSuperAdmin) return false;
+    return u.role === 'SUPERADMIN' || u.role === 'ADMIN' || u.role === 'ADMINISTRADORA' || u.role === 'ADMINISTRADOR'
   }).sort((a, b) => {
     if (a.role === 'SUPERADMIN' && b.role !== 'SUPERADMIN') return -1
     if (a.role !== 'SUPERADMIN' && b.role === 'SUPERADMIN') return 1

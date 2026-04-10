@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { isAdmin, isOperator } from '@/lib/rbac'
 
 export async function GET(
   request: Request,
@@ -34,7 +35,12 @@ export async function POST(
 ) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session || (session.user as any).role !== 'ADMIN') {
+    if (!session || !session.user) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    }
+
+    const userRole = (session.user as any).role
+    if (!isAdmin(userRole) && !isOperator(userRole)) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
