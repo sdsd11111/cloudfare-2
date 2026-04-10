@@ -75,7 +75,7 @@ export default function ProjectExecutionClient({
             const existingIds = new Set(msgs.map((m: any) => m.id))
             const uniqueNew = (newMsgs as any[]).filter((m: any) => !existingIds.has(m.id)).map((m: any) => ({
               ...m,
-              isMe: String(m.userId) === String(session?.user?.id), // Robust comparison
+              isMe: Number(m.userId) === Number(userId), // Robust comparison using prop
               userName: m.user?.name || 'Usuario',
               userBranch: m.user?.branch || null
             }))
@@ -1670,7 +1670,10 @@ export default function ProjectExecutionClient({
               ) : (
                 filteredChat.map((msg: any) => (
                   <div key={msg.id} className="chat-message" style={{ alignSelf: msg.isMe ? 'flex-end' : 'flex-start', maxWidth: isSmallScreen ? '92%' : '80%', display: 'flex', flexDirection: 'column' }}>
-                    {!msg.isMe && <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 'bold', marginBottom: '4px', marginLeft: '12px' }}>{msg.userName}{msg.userBranch && <span style={{ fontWeight: '500', color: 'var(--info)', marginLeft: '6px', fontSize: '0.65rem' }}>📍{msg.userBranch}</span>}</span>}
+                    <span style={{ fontSize: '0.75rem', color: msg.isMe ? 'var(--text-muted)' : 'var(--primary)', fontWeight: 'bold', marginBottom: '4px', marginLeft: msg.isMe ? '0' : '12px', marginRight: msg.isMe ? '12px' : '0', alignSelf: msg.isMe ? 'flex-end' : 'flex-start' }}>
+                      {msg.isMe ? 'Yo' : msg.userName}
+                      {!msg.isMe && msg.userBranch && <span style={{ fontWeight: '500', color: 'var(--info)', marginLeft: '6px', fontSize: '0.65rem' }}>📍{msg.userBranch}</span>}
+                    </span>
                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: '6px', flexDirection: msg.isMe ? 'row' : 'row-reverse' }}>
                       {msg.isMe && (
                         <button
