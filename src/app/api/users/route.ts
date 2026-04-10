@@ -138,6 +138,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Este nombre de usuario ya está activo en el sistema.' }, { status: 400 })
     }
 
+    // Check if email is already taken by an ACTIVE user
+    if (email) {
+      const existingEmail = await prisma.user.findFirst({
+        where: { email, isActive: true }
+      })
+
+      if (existingEmail) {
+        return NextResponse.json({ error: 'Este correo electrónico ya está registrado en el sistema.' }, { status: 400 })
+      }
+    }
+
     const passwordHash = await bcrypt.hash(password, 10)
 
     const user = await prisma.user.create({
@@ -167,10 +178,16 @@ export async function POST(request: Request) {
     })
   } catch (error: any) {
     console.error('Error creating user:', error)
-    // If we still get a P2002 here, it means we missed an inactive one during the rename script phase
-    const isUniqueError = error.code === 'P2002'
+    // If we still get a P2002 here, it means we missed an inactive one or a race condition occurred
+    if (error.code === 'P2002') {
+      const target = error.meta?.target || ''
+      if (typeof target === 'string' && target.includes('email')) {
+        return NextResponse.json({ error: 'Error: El correo electrónico ya está en uso.' }, { status: 400 })
+      }
+      return NextResponse.json({ error: 'Error: El nombre de usuario ya está en uso.' }, { status: 400 })
+    }
     return NextResponse.json({ 
-      error: isUniqueError ? 'Error: Nombre de usuario duplicado (intenta otro).' : 'Error al registrar miembro'
+      error: 'Error al registrar miembro en el servidor.'
     }, { status: 500 })
   }
 }
