@@ -115,7 +115,7 @@ export async function POST(request: Request) {
 
     // Validate minimum required data
     if (!title || (!client?.name && !clientId)) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+      return NextResponse.json({ error: 'Faltan campos obligatorios. Asegúrese de ingresar el título y de tener un cliente seleccionado o creado.' }, { status: 400 })
     }
 
     const project = await prisma.$transaction(async (tx) => {

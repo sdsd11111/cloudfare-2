@@ -67,9 +67,15 @@ export function forceEcuadorTZ(dtStr: string | null | undefined): string {
     const timePart = dtStr.substring(tIndex);
     // Look for +HH:MM or -HH:MM offset pattern in the time portion
     if (/[+-]\d{2}:\d{2}$/.test(timePart)) return dtStr;
+    // dtStr format is YYYY-MM-DDTHH:mm, append seconds and Ecuador offset
+    return dtStr + ':00-05:00';
+  } else {
+    // Si no tiene la "T", suele venir de un <input type="date"> => "YYYY-MM-DD"
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dtStr)) {
+      return dtStr + 'T00:00:00-05:00';
+    }
+    return dtStr; // Retorna normal si no tiene un formato esperado
   }
-  // dtStr format is YYYY-MM-DDTHH:mm, append seconds and Ecuador offset
-  return dtStr + ':00-05:00';
 }
 
 /**
