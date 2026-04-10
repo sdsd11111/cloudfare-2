@@ -387,10 +387,10 @@ export default function CalendarAssistant() {
           border-radius: 16px;
           font-size: 0.95rem;
           line-height: 1.5;
-          color: #334155;
+          color: #0f172a;
           background: white;
-          box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-          border: 1px solid #f1f5f9;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+          border: 1px solid #e2e8f0;
         }
 
         .user .msg-content {
@@ -432,6 +432,12 @@ export default function CalendarAssistant() {
           padding: 10px 0;
           font-size: 0.95rem;
           outline: none;
+          color: #0f172a;
+        }
+
+        input::placeholder {
+          color: #64748b;
+          opacity: 1;
         }
 
         .action-btns {

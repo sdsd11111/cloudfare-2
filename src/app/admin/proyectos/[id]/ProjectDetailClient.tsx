@@ -78,6 +78,9 @@ export default function ProjectDetailClient({ project, availableOperators = [] }
     date: new Date().toISOString().split('T')[0]
   })
   const [isSavingExpense, setIsSavingExpense] = useState(false)
+  const [expenseImage, setExpenseImage] = useState<string | null>(null)
+  const [expenseImagePreview, setExpenseImagePreview] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   
   const [isEditingBudget, setIsEditingBudget] = useState(false)
   const [editBudget, setEditBudget] = useState(project.estimatedBudget || 0)
@@ -665,6 +668,19 @@ export default function ProjectDetailClient({ project, availableOperators = [] }
   }
 
   // --- EXPENSE HANDLERS ---
+  const handleExpenseImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Preview
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setExpenseImagePreview(reader.result as string)
+      setExpenseImage(reader.result as string)
+    }
+    reader.readAsDataURL(file)
+  }
+
   const handleSaveExpense = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSavingExpense(true)
@@ -679,7 +695,8 @@ export default function ProjectDetailClient({ project, availableOperators = [] }
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...expenseForm,
-          amount: Number(expenseForm.amount)
+          amount: Number(expenseForm.amount),
+          receiptPhoto: expenseImage
         })
       })
 
@@ -693,6 +710,8 @@ export default function ProjectDetailClient({ project, availableOperators = [] }
         setIsExpenseModalOpen(false)
         setEditingExpense(null)
         setExpenseForm({ amount: '', description: '', isNote: false, date: new Date().toISOString().split('T')[0] })
+        setExpenseImage(null)
+        setExpenseImagePreview(null)
         router.refresh()
       }
     } catch (error) {
@@ -1777,6 +1796,8 @@ export default function ProjectDetailClient({ project, availableOperators = [] }
                   onClick={() => {
                     setEditingExpense(null)
                     setExpenseForm({ amount: '', description: '', isNote: false, date: new Date().toISOString().split('T')[0] })
+                    setExpenseImage(null)
+                    setExpenseImagePreview(null)
                     setIsExpenseModalOpen(true)
                   }}
                   className="btn btn-primary"
@@ -1824,7 +1845,15 @@ export default function ProjectDetailClient({ project, availableOperators = [] }
                         <td style={{ padding: '12px', textAlign: 'center' }}>
                           <div style={{ display: 'flex', gap: '5px', justifyContent: 'center' }}>
                             {ex.receiptUrl && (
-                              <button onClick={() => window.open(ex.receiptUrl, '_blank')} className="btn btn-ghost btn-sm" title="Ver Recibo">📎</button>
+                              <div 
+                                onClick={() => {
+                                  setSelectedPreviewImage({ url: ex.receiptUrl, title: `Comprobante: ${ex.description}` })
+                                }}
+                                style={{ width: '24px', height: '24px', borderRadius: '4px', overflow: 'hidden', cursor: 'pointer', border: '1px solid var(--border-color)' }}
+                                title="Ver Comprobante"
+                              >
+                                <img src={ex.receiptUrl} alt="Recibo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              </div>
                             )}
                             <button 
                               onClick={() => {
@@ -1835,6 +1864,13 @@ export default function ProjectDetailClient({ project, availableOperators = [] }
                                   isNote: ex.isNote,
                                   date: new Date(ex.date).toISOString().split('T')[0]
                                 })
+                                if (ex.receiptUrl) {
+                                  setExpenseImagePreview(ex.receiptUrl)
+                                  setExpenseImage(null) // It's already on server, no need for raw data
+                                } else {
+                                  setExpenseImagePreview(null)
+                                  setExpenseImage(null)
+                                }
                                 setIsExpenseModalOpen(true)
                               }}
                               className="btn btn-ghost btn-sm"
@@ -2298,6 +2334,64 @@ export default function ProjectDetailClient({ project, availableOperators = [] }
                 <input type="checkbox" id="modalIsNote" checked={expenseForm.isNote} onChange={e => setExpenseForm({...expenseForm, isNote: e.target.checked})} />
                 <label htmlFor="modalIsNote">¿Es solo una nota informativa?</label>
               </div>
+
+              <div className="form-group" style={{ marginTop: '5px' }}>
+                <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  Comprobante / Foto (Opcional)
+                </label>
+                <div 
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{ 
+                    border: '2px dashed var(--border-color)', 
+                    borderRadius: '12px', 
+                    padding: '20px', 
+                    textAlign: 'center', 
+                    cursor: 'pointer',
+                    backgroundColor: 'var(--bg-surface)',
+                    transition: 'all 0.2s',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    minHeight: '100px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.borderColor = 'var(--primary)'}
+                  onMouseOut={(e) => e.currentTarget.style.borderColor = 'var(--border-color)'}
+                >
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    onChange={handleExpenseImageChange} 
+                    accept="image/*" 
+                    style={{ display: 'none' }} 
+                  />
+                  {expenseImagePreview ? (
+                    <div style={{ position: 'relative', width: '100%', height: '140px' }}>
+                      <img src={expenseImagePreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '8px' }} />
+                      <button 
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setExpenseImage(null)
+                          setExpenseImagePreview(null)
+                        }}
+                        style={{ position: 'absolute', top: '5px', right: '5px', background: 'rgba(239, 68, 68, 0.9)', color: 'white', border: 'none', borderRadius: '50%', width: '24px', height: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5" style={{ marginBottom: '8px' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                      <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Haz clic para subir una foto</span>
+                    </>
+                  )}
+                </div>
+              </div>
+
               <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
                 <button type="button" onClick={() => setIsExpenseModalOpen(false)} className="btn btn-ghost" style={{ flex: 1 }}>Cancelar</button>
                 <button type="submit" className="btn btn-primary" style={{ flex: 1 }} disabled={isSavingExpense}>
