@@ -14,6 +14,7 @@ import {
 } from '@/lib/pdf-generator'
 import { useSession } from 'next-auth/react'
 import { formatToEcuador, ECUADOR_TIMEZONE, formatTimeEcuador, formatDateEcuador } from '@/lib/date-utils'
+import { compressImage as optimizedCompress } from '@/lib/image-optimization'
 
 import Link from 'next/link'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
@@ -381,37 +382,6 @@ export default function ProjectExecutionClient({
     }
   }
 
-  const compressImage = (base64: string): Promise<string> => {
-    return new Promise((resolve) => {
-      const img = new Image()
-      img.src = base64
-      img.onload = () => {
-        const canvas = document.createElement('canvas')
-        const MAX_WIDTH = 1000
-        const MAX_HEIGHT = 1000
-        let width = img.width
-        let height = img.height
-
-        if (width > height) {
-          if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width
-            width = MAX_WIDTH
-          }
-        } else {
-          if (height > MAX_HEIGHT) {
-            width *= MAX_HEIGHT / height
-            height = MAX_HEIGHT
-          }
-        }
-
-        canvas.width = width
-        canvas.height = height
-        const ctx = canvas.getContext('2d')
-        ctx?.drawImage(img, 0, 0, width, height)
-        resolve(canvas.toDataURL('image/jpeg', 0.7))
-      }
-    })
-  }
 
   const handleAddExpense = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -441,9 +411,7 @@ export default function ProjectExecutionClient({
       }
 
       let processedPhoto = expensePhoto
-      if (expensePhoto) {
-        processedPhoto = await compressImage(expensePhoto)
-      }
+      // Note: expensePhoto is handled in the input onChange now with optimizedCompress
 
       const payload = { 
         amount: Number(amount), 
@@ -571,14 +539,17 @@ export default function ProjectExecutionClient({
 
       let mediaData = null
       if (mediaFile) {
-        let base64: string = await new Promise((resolve) => {
-          const reader = new FileReader()
-          reader.onloadend = () => resolve(reader.result as string)
-          reader.readAsDataURL(mediaFile)
-        })
-
+        let base64: string
         if (mediaFile.type.startsWith('image/')) {
-          base64 = await compressImage(base64)
+          base64 = await optimizedCompress(mediaFile)
+        } else {
+          // For non-images (videos/docs), we still need the data URL, but keep it minimal
+          // Note: Videos might still spike memory, but the user specifically mentioned images
+          base64 = await new Promise((resolve) => {
+            const reader = new FileReader()
+            reader.onloadend = () => resolve(reader.result as string)
+            reader.readAsDataURL(mediaFile)
+          })
         }
 
         mediaData = {
@@ -686,9 +657,6 @@ export default function ProjectExecutionClient({
       const isBase64 = typeof file.url === 'string' && file.url.startsWith('data:')
 
       let processedBase64 = isBase64 ? file.url : null
-      if (isBase64 && file.mimeType?.startsWith('image/')) {
-        processedBase64 = await compressImage(file.url)
-      }
 
       const payload = { 
         phaseId: activePhase, 
@@ -1378,12 +1346,13 @@ export default function ProjectExecutionClient({
                               onChange={async (e) => {
                                 const file = e.target.files?.[0]
                                 if (file) {
-                                  const reader = new FileReader()
-                                  reader.onloadend = async () => {
-                                    const compressed = await compressImage(reader.result as string)
+                                  try {
+                                    const compressed = await optimizedCompress(file)
                                     setExpensePhoto(compressed)
+                                  } catch (err) {
+                                    console.error('Compression error:', err)
+                                    alert('Error al procesar la imagen. Intenta con una más pequeña.')
                                   }
-                                  reader.readAsDataURL(file)
                                 }
                               }} 
                             />
@@ -1569,7 +1538,7 @@ export default function ProjectExecutionClient({
           <div className="chat-container" style={{ 
             display: 'flex', 
             flexDirection: 'column', 
-            height: isSmallScreen ? 'calc(100vh - 200px)' : '65vh', 
+            height: isSmallScreen ? 'calc(100svh - 220px)' : '65vh', 
             backgroundColor: 'var(--bg-card)', 
             borderRadius: isSmallScreen ? '0' : '12px', 
             overflow: 'hidden', 
@@ -1804,7 +1773,6 @@ export default function ProjectExecutionClient({
               )}
             </div>
 
-            {/* Message Input */}
             <div style={isSmallScreen ? {
               padding: '12px 10px', 
               backgroundColor: 'var(--bg-deep)', 
@@ -1813,11 +1781,12 @@ export default function ProjectExecutionClient({
               gap: '8px', 
               alignItems: 'center', 
               position: 'fixed', 
-              bottom: '64px',
+              bottom: '0', 
               left: 0,
               right: 0,
               zIndex: 100,
-              boxShadow: '0 -2px 10px rgba(0,0,0,0.2)'
+              boxShadow: '0 -2px 15px rgba(0,0,0,0.4)',
+              paddingBottom: 'env(safe-area-inset-bottom, 12px)'
             } : { 
               padding: '15px', 
               backgroundColor: 'var(--bg-deep)', 

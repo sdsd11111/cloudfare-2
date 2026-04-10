@@ -1,37 +1,43 @@
 import type { Metadata } from 'next'
 import Navbar from '@/components/marketing/Navbar'
 import Hero from '@/components/marketing/Hero'
-import ServiceSpotlight from '@/components/marketing/ServiceSpotlight'
+import { FeaturedProduct } from '@/components/marketing/FeaturedProduct'
 import CategoryGrid from '@/components/marketing/CategoryGrid'
 import Footer from '@/components/marketing/Footer'
 
+// metadataBase is required in Next.js 14+ to resolve relative URLs for social sharing
 export const metadata: Metadata = {
-  title: 'Aquatech | Construcción de Piscinas, Hidromasajes y Riego en Loja',
-  description: 'Especialistas en ingeniería hidráulica, diseño de piscinas residenciales, saunas y sistemas de riego tecnificado en el sur del Ecuador (Loja y Zamora).',
+  metadataBase: new URL('https://aquatech.com.ec'),
+  title: 'Aquatech | Piscinas, Hidromasajes y Riego en Loja',
+  description: 'Ingeniería hidráulica de vanguardia. Diseñamos y construimos piscinas, saunas y sistemas de riego premium en el sur del Ecuador.',
   keywords: ['piscinas loja', 'hidromasajes ecuador', 'riego automatico loja', 'aquatech', 'saunas ecuador', 'construccion de piscinas'],
   openGraph: {
-    title: 'Aquatech | Innovación Hidráulica para tu Hogar',
-    description: 'Expertos en crear y mantener el paraíso en tu hogar con tecnología de vanguardia.',
-    images: ['/images/hero-pool.png'],
+    title: 'Aquatech | El Paraíso en tu Hogar',
+    description: 'Tecnología hidráulica para transformar tu espacio.',
+    images: ['/images/jacuzzi-spotlight.png'],
+    type: 'website',
   }
 }
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[#0B1623]">
-      {/* Header Fijo */}
+    <main className="min-h-screen bg-white selection:bg-[#0070C0] selection:text-white">
+      {/* Header Premium Fijo */}
       <Navbar />
 
-      {/* Hero Section - Impacto Total */}
+      {/* Hero Section: Banner Principal (Estilo Apple) */}
       <Hero />
 
-      {/* Spotlight - Productos/Servicios Destacados (Estilo Apple) */}
-      <ServiceSpotlight />
+      {/* Featured Focus: Producto Estrella Gigante (Tipo iPhone impact) */}
+      <FeaturedProduct />
 
-      {/* Grid de Categorías y Accesorios */}
+      {/* Service Grid: 2x2 side-by-side (Tipo iMac/Watch cards) */}
       <CategoryGrid />
 
-      {/* Footer Institucional */}
+      {/* Espaciador de Seguridad para garantizar separación del footer */}
+      <div className="h-32 md:h-48 bg-white" />
+
+      {/* Footer: Rediseño Institucional Totalmente Espaciado */}
       <Footer />
     </main>
   )

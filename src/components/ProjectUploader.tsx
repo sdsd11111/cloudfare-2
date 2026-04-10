@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useMemo } from 'react'
+import { compressImage as optimizedCompress } from '@/lib/image-optimization'
 
 // Inline SVG icons to avoid lucide-react webpack bundling issues
 const svgProps = (size: number) => ({
@@ -70,21 +71,27 @@ export default function ProjectUploader({
     try {
       for (let i = 0; i < selectedFiles.length; i++) {
         const file = selectedFiles[i]
+        const isImage = file.type.startsWith('image/')
 
         if (!isOnline) {
           // Offline Mode: Convert to base64 locally
-          const reader = new FileReader()
-          const base64: string = await new Promise((resolve, reject) => {
-            reader.onload = () => resolve(reader.result as string)
-            reader.onerror = reject
-            reader.readAsDataURL(file)
-          })
+          let base64: string
+          if (isImage) {
+            base64 = await optimizedCompress(file)
+          } else {
+            const reader = new FileReader()
+            base64 = await new Promise((resolve, reject) => {
+              reader.onload = () => resolve(reader.result as string)
+              reader.onerror = reject
+              reader.readAsDataURL(file)
+            })
+          }
 
           const localFile = {
             url: base64, // Local preview/base64 for outbox
             filename: file.name,
             mimeType: file.type,
-            type: (file.type.startsWith('image/') ? 'IMAGE' : (file.type.startsWith('video/') ? 'VIDEO' : 'DOCUMENT')) as 'IMAGE' | 'VIDEO' | 'DOCUMENT'
+            type: (isImage ? 'IMAGE' : (file.type.startsWith('video/') ? 'VIDEO' : 'DOCUMENT')) as 'IMAGE' | 'VIDEO' | 'DOCUMENT'
           }
           
           onAddFile(localFile)
@@ -93,7 +100,22 @@ export default function ProjectUploader({
 
         // Online Mode: Normal upload
         const formData = new FormData()
-        formData.append('file', file)
+        
+        if (isImage) {
+          // Compress before sending to avoid memory/bandwidth issues
+          try {
+            const compressedB64 = await optimizedCompress(file)
+            // Convert B64 back to blob for FormData to keep it efficient
+            const resB64 = await fetch(compressedB64)
+            const blob = await resB64.blob()
+            formData.append('file', blob, file.name)
+          } catch (err) {
+            console.error('Compression failed, falling back to original', err)
+            formData.append('file', file)
+          }
+        } else {
+          formData.append('file', file)
+        }
 
         const res = await fetch('/api/upload', {
           method: 'POST',

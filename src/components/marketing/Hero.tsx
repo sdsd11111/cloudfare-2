@@ -1,80 +1,56 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 
 export default function Hero() {
   return (
-    <section className="relative h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-[#0B1623]">
-      {/* Background Image with Overlay */}
-      <div className="absolute inset-0 z-0">
-        <Image 
-          src="/images/hero-pool.png" 
-          alt="Aquatech Luxury Pool" 
-          fill 
-          priority
-          className="object-cover opacity-60 scale-105 animate-[slow-zoom_20s_ease-in-out_infinite]"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0B1623]/60 via-transparent to-[#0B1623]" />
+    <section className="relative h-[100vh] w-full bg-black overflow-hidden">
+      {/* Absolute Background Media - High Quality Pool */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center transition-transform duration-[10000ms] scale-110 motion-safe:animate-ken-burns"
+        style={{ backgroundImage: 'url("/images/hero-pool.png")' }}
+      >
+        <div className="absolute inset-0 bg-black/40" />
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 text-center px-6 max-w-4xl mx-auto flex flex-col items-center">
-        <h1 className="font-brand font-black text-5xl md:text-8xl text-white tracking-tighter leading-none mb-6 animate-fade-in-up">
-          EL PARAÍSO <br />
-          <span className="text-[#38BDF8]">EN TU HOGAR</span>
+      {/* Hero Content - Clean typography like Think */}
+      <div className="relative h-full flex flex-col items-center justify-center text-center px-6 z-10 pt-20">
+        <h1 className="font-brand font-[600] text-[48px] md:text-[80px] lg:text-[96px] text-white tracking-tightest leading-[1.05] mb-6">
+          El paraíso <br className="hidden md:block" />
+          <span className="text-[#38BDF8]">en tu hogar</span>
         </h1>
         
-        <p className="text-xl md:text-2xl text-white/80 font-medium tracking-wide max-w-2xl mb-12 animate-fade-in-up animation-delay-300">
-          Diseño y construcción de piscinas de alta gama, hidromasajes y sistemas hídricos inteligentes en Loja y Zamora.
+        <p className="max-w-3xl text-lg md:text-2xl text-white/80 font-[400] mb-12 tracking-tight">
+          Diseño y construcción de sistemas hídricos inteligentes. <br className="hidden md:block" />
+          Ingeniería de vanguardia en Loja y Zamora.
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center gap-6 animate-fade-in-up animation-delay-500">
+        {/* Impact Links - Apple Style instead of chunky buttons */}
+        <div className="flex flex-wrap items-center justify-center gap-10">
           <Link 
             href="/cotizador" 
-            className="group px-10 py-4 bg-[#0070C0] hover:bg-[#005ea1] text-white font-bold rounded-full text-lg transition-all flex items-center gap-2 shadow-2xl shadow-[#0070C0]/40"
+            className="text-[19px] md:text-[21px] font-[500] text-[#38BDF8] hover:underline flex items-center gap-1 group"
           >
             Iniciar una cotización
-            <ChevronRight className="group-hover:translate-x-1 transition-transform" />
+            <ChevronRight size={20} className="mt-0.5 group-hover:translate-x-2 transition-transform" />
           </Link>
           <Link 
-            href="/portafolio" 
-            className="text-white hover:text-[#38BDF8] font-bold text-lg flex items-center gap-1 group transition-colors"
+            href="/obras" 
+            className="text-[19px] md:text-[21px] font-[500] text-[#38BDF8] hover:underline flex items-center gap-1 group"
           >
             Ver portafolio de obras
-            <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
+            <ChevronRight size={20} className="mt-0.5 group-hover:translate-x-2 transition-transform" />
           </Link>
         </div>
       </div>
 
-      {/* Scroll indicator */}
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce opacity-40">
-        <div className="w-6 h-10 border-2 border-white rounded-full flex justify-center p-1">
-          <div className="w-1 h-3 bg-white rounded-full" />
+      {/* Subtle Bottom Indicator */}
+      <div className="absolute bottom-12 inset-x-0 flex justify-center text-white/30 animate-bounce">
+        <div className="w-5 h-8 border-2 border-current rounded-full flex justify-center pt-1">
+          <div className="w-1 h-2 bg-current rounded-full" />
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes slow-zoom {
-          0% { transform: scale(1); }
-          50% { transform: scale(1.1); }
-          100% { transform: scale(1); }
-        }
-        .animation-delay-300 { animation-delay: 300ms; }
-        .animation-delay-500 { animation-delay: 500ms; }
-        .animate-fade-in-up {
-          animation: fadeInUp 0.8s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        @keyframes fadeInUp {
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
     </section>
   )
 }

@@ -7,9 +7,16 @@
   --font-sans: "Inter", sans-serif;
   
   --color-brand-blue: #0070C0;
-  --color-brand-dark: #0B1623;
-  --color-brand-darker: #0F1D2E;
+  --color-brand-dark: #000000;
+  --color-brand-gray: #6e6e73;
+  --color-brand-light: #f5f5f7;
   --color-brand-cyan: #38BDF8;
+}
+
+@layer utilities {
+  .tracking-tightest { letter-spacing: -0.05em; }
+  .tracking-widest-premium { letter-spacing: 0.1em; }
+  .text-apple-gray { color: #6e6e73; }
 }
 
 @layer base {
