@@ -91,7 +91,7 @@ REGLAS DE ORO (CONSULTAS):
    - Si NO tiene ninguna tarea a esa hora (o ni siquiera aparece en la agenda), está LIBRE.
 2. IMPORTANTE: Si solo ves a una persona ocupada en la agenda, significa que TODOS LOS DEMÁS de la lista "EQUIPO REGISTRADO" están LIBRES. No digas que no hay más registrados.
 3. Formato obligatorio: 
-   - Usa SIEMPRE listas con viñetas (bullet points) y listas ordenadas para organizar la información de forma visual, clara y estructurada.
+   - Usa SIEMPRE listas con viñetas (bullet points) y listas ordenadas.
    - Ejemplo:
      * **LIBRES:** Juan, Pedro, María
      * **OCUPADOS:** 
@@ -99,30 +99,43 @@ REGLAS DE ORO (CONSULTAS):
 4. NO SALUDES ni des introducciones. Sé extremadamente breve, ordenado y usa Markdown.
 
 REGLAS DE AGENDAMIENTO (CRÍTICAS — CUMPLIR AL 100%):
-5. Para agendar una cita necesitas EXACTAMENTE estos 4 datos, TODOS proporcionados EXPLÍCITAMENTE por el usuario:
-   a) **Nombre del operador** (debe coincidir con alguien del EQUIPO REGISTRADO)
-   b) **Título de la tarea** (ej: "Mantenimiento de piscina", "Instalación de bomba")
+5. Para agendar una cita necesitas EXACTAMENTE estos 4 datos del ÚLTIMO mensaje del usuario (NO de mensajes anteriores):
+   a) **Nombre del operador** (debe coincidir EXACTAMENTE con alguien del EQUIPO REGISTRADO)
+   b) **Título de la tarea** (dicho explícitamente por el usuario, ej: "Mantenimiento de piscina")
    c) **Hora de inicio** (fecha y hora exacta)
    d) **Hora de fin** (fecha y hora exacta)
 
-6. **PROHIBIDO INVENTAR DATOS**: NUNCA, BAJO NINGUNA CIRCUNSTANCIA, inventes, asumas o rellenes datos que el usuario no te haya dado explícitamente. Ejemplos de lo que NO debes hacer:
-   - NO inventes títulos como "Tarea programada", "Cita", "Reunión" si el usuario no dijo el título.
-   - NO asumas hora de fin. Si el usuario dice "a las 3pm" pero NO dice hasta qué hora, PREGUNTA.
-   - NO asumas que la cita dura 1 hora, 30 minutos o cualquier duración por defecto.
-   - NO asumas el día si el usuario no lo especificó claramente.
+6. **PROHIBIDO INVENTAR DATOS — TOLERANCIA CERO**:
+   - NUNCA inventes títulos. Si el usuario no dijo un título específico, PREGUNTA.
+   - NUNCA asumas hora de fin ni duración.
+   - NUNCA uses datos de mensajes anteriores para auto-completar campos que el usuario no repitió.
+   - NUNCA interpretes saludos ("hola", "ok", "sí", "bueno") como datos o confirmaciones para agendar.
+   - Si el mensaje del usuario es un saludo, pregunta genérica, o texto ambiguo: RESPONDE normalmente SIN llamar a crear_cita.
 
-7. Si te falta CUALQUIERA de los 4 datos, DEBES responder preguntando SOLAMENTE lo que falta. Ejemplo:
-   - Usuario: "Agenda a Pedro mañana" → Te faltan 3 datos: título, hora inicio, hora fin. Pregunta los 3.
-   - Usuario: "Ponle mantenimiento a Juan a las 3pm" → Te falta 1 dato: hora de fin. Pregunta ese.
-   - Usuario: "Agenda algo mañana a las 10am hasta las 12pm" → Te faltan 2 datos: quién y qué tarea. Pregunta ambos.
+7. Si te falta CUALQUIERA de los 4 datos, DEBES preguntar qué falta. NO llames a crear_cita.
 
-8. Solo cuando tengas los 4 datos CONFIRMADOS por el usuario, usa la herramienta "crear_cita".
+8. ANTES de llamar a crear_cita, SIEMPRE muestra un RESUMEN así y pide confirmación explícita:
+   "📋 **Resumen de cita a crear:**
+   - **Operador:** [nombre]
+   - **Tarea:** [título]
+   - **Inicio:** [fecha y hora]
+   - **Fin:** [fecha y hora]
+   
+   Escribe **confirmar** para proceder."
 
-9. Si el usuario te da datos ambiguos (ej: "en la tarde", "más tarde", "un rato"), pide que sea ESPECÍFICO con hora exacta.`
+   Solo llama a crear_cita si el usuario responde EXACTAMENTE "confirmar", "sí confirmo", "confirmo" o similar.
 
+9. Si el usuario te da datos ambiguos (ej: "en la tarde", "más tarde"), pide que sea ESPECÍFICO.
+
+10. Si el usuario responde algo que NO es una confirmación clara (como "hola", "ok", "bueno", cualquier texto random), NO procedas a crear la cita. Pregunta de nuevo si desea confirmar.`
+
+    // Build messages — only send last 6 messages to avoid context pollution
+    const userMessages = messages || (query ? [{ role: 'user', content: query }] : [])
+    const trimmedMessages = userMessages.length > 6 ? userMessages.slice(-6) : userMessages
+    
     const apiMessages = [
       { role: 'system', content: systemPrompt },
-      ...(messages || (query ? [{ role: 'user', content: query }] : []))
+      ...trimmedMessages
     ]
 
     const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -139,13 +152,13 @@ REGLAS DE AGENDAMIENTO (CRÍTICAS — CUMPLIR AL 100%):
             type: "function",
             function: {
               name: "crear_cita",
-              description: "Programa una cita o evento en la agenda de un operador.",
+              description: "Programa una cita SOLO después de que el usuario haya escrito 'confirmar' explícitamente tras ver el resumen. NUNCA llamar si el usuario dijo hola, ok, sí, o cualquier texto que no sea confirmación.",
               parameters: {
                 type: "object",
                 properties: {
-                  operatorId: { type: "integer", description: "El ID numérico del operador obtenido de EQUIPO REGISTRADO." },
-                  title: { type: "string", description: "Título breve de la tarea/cita." },
-                  startTime: { type: "string", description: "Fecha y hora de inicio en formato ISO 8601 (Ej: 2026-04-10T15:00:00.000Z). Debe considerar la fecha actual para deducir 'mañana' o el día correspondiente." },
+                  operatorId: { type: "integer", description: "El ID numérico del operador obtenido de EQUIPO REGISTRADO. DEBE ser un ID que exista en la lista." },
+                  title: { type: "string", description: "Título breve de la tarea/cita DICHO EXPLÍCITAMENTE por el usuario. NO inventar." },
+                  startTime: { type: "string", description: "Fecha y hora de inicio en formato ISO 8601." },
                   endTime: { type: "string", description: "Fecha y hora de finalización en formato ISO 8601." },
                   description: { type: "string", description: "Descripción detallada (opcional)." }
                 },
@@ -155,7 +168,7 @@ REGLAS DE AGENDAMIENTO (CRÍTICAS — CUMPLIR AL 100%):
           }
         ],
         tool_choice: "auto",
-        temperature: 0.1,
+        temperature: 0.05,
         max_tokens: 1000
       })
     })
@@ -175,14 +188,50 @@ REGLAS DE AGENDAMIENTO (CRÍTICAS — CUMPLIR AL 100%):
       if (toolCall.function.name === 'crear_cita') {
         const args = JSON.parse(toolCall.function.arguments)
         
-        // 1. Verify Collision
+        // ========== SERVER-SIDE GUARDRAILS (AI cannot bypass these) ==========
+        
+        // GUARDRAIL 1: Check that the LAST user message is a real confirmation
+        const lastUserMsg = trimmedMessages.filter((m: any) => m.role === 'user').pop()
+        const lastText = (lastUserMsg?.content || '').toLowerCase().trim()
+        const isConfirmation = /\b(confirmar|confirmo|sí\s*confirmo|si\s*confirmo|procede|dale|hazlo)\b/i.test(lastText)
+        
+        if (!isConfirmation) {
+          // The AI tried to create without confirmation — BLOCK IT and ask for confirmation
+          const operatorName = operators.find(o => o.id === args.operatorId)?.name || 'Desconocido'
+          return NextResponse.json({ 
+            answer: `📋 **Resumen de cita a crear:**\n- **Operador:** ${operatorName}\n- **Tarea:** ${args.title}\n- **Inicio:** ${args.startTime}\n- **Fin:** ${args.endTime}\n\n✏️ Escribe **"confirmar"** para proceder, o **"cancelar"** para descartar.` 
+          })
+        }
+        
+        // GUARDRAIL 2: Validate operator exists in the database
+        const validOperator = operators.find(o => o.id === args.operatorId)
+        if (!validOperator) {
+          return NextResponse.json({ 
+            answer: `❌ **Error:** El operador con ID ${args.operatorId} no existe en el sistema. Los operadores disponibles son:\n${operators.map(o => `- ${o.name}`).join('\n')}\n\n¿A cuál deseas agendar?` 
+          })
+        }
+        
+        // GUARDRAIL 3: Validate dates
         const start = new Date(args.startTime)
         const end = new Date(args.endTime)
         
         if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-           return NextResponse.json({ answer: 'Hubo un error interpretando la hora ingresada. ¿Podrías ser más específico con el formato de fecha?' })
+           return NextResponse.json({ answer: '❌ Hubo un error interpretando la hora. ¿Podrías ser más específico con el formato de fecha y hora?' })
         }
         
+        if (end <= start) {
+           return NextResponse.json({ answer: '❌ La hora de fin debe ser posterior a la hora de inicio. Indícame las horas correctas.' })
+        }
+
+        // GUARDRAIL 4: Reject suspicously generic titles
+        const genericTitles = ['tarea', 'cita', 'reunión', 'reunion', 'tarea programada', 'evento', 'actividad', 'hola', 'test', 'prueba']
+        if (genericTitles.includes(args.title.toLowerCase().trim())) {
+          return NextResponse.json({ 
+            answer: `❌ El título **"${args.title}"** es muy genérico. ¿Podrías darme un título más descriptivo para la tarea? (ej: "Mantenimiento de bomba", "Instalación de filtro")` 
+          })
+        }
+        
+        // GUARDRAIL 5: Check collision
         const collision = await prisma.appointment.findFirst({
            where: {
              userId: args.operatorId,
@@ -195,11 +244,11 @@ REGLAS DE AGENDAMIENTO (CRÍTICAS — CUMPLIR AL 100%):
         
         if (collision) {
            return NextResponse.json({ 
-             answer: `⚠️ **¡Atención! Choque de horarios detectado.**\n\nEl operador seleccionado ya tiene la tarea **"${collision.title}"** agendada en ese rango horario (${formatToEcuador(collision.startTime)}). Por seguridad, la cita nueva ha sido denegada. Intenta con un horario diferente o reasígnalo a otro equipo.` 
+             answer: `⚠️ **¡Choque de horarios detectado!**\n\n**${validOperator.name}** ya tiene la tarea **"${collision.title}"** agendada en ese rango horario (${formatToEcuador(collision.startTime)}). Intenta con un horario diferente.` 
            })
         }
         
-        // 2. Safe to create
+        // ALL GUARDRAILS PASSED — Safe to create
         await prisma.appointment.create({
           data: {
             userId: args.operatorId,
@@ -213,7 +262,7 @@ REGLAS DE AGENDAMIENTO (CRÍTICAS — CUMPLIR AL 100%):
         })
         
         return NextResponse.json({ 
-          answer: `✅ **¡Cita agendada exitosamente!**\n\nHe registrado la tarea **"${args.title}"** sin conflictos de horario en el calendario.`,
+          answer: `✅ **¡Cita agendada exitosamente!**\n\n- **Operador:** ${validOperator.name}\n- **Tarea:** ${args.title}\n- **Inicio:** ${formatToEcuador(start)}\n- **Fin:** ${formatToEcuador(end)}`,
           reloadCalendar: true 
         })
       }
@@ -228,3 +277,4 @@ REGLAS DE AGENDAMIENTO (CRÍTICAS — CUMPLIR AL 100%):
     return NextResponse.json({ error: 'Error interno al procesar la consulta' }, { status: 500 })
   }
 }
+

@@ -1244,7 +1244,7 @@ export default function ProjectDetailClient({ project, availableOperators = [] }
                 </button>
                 <button 
                   className="btn btn-secondary" 
-                  onClick={() => handleDownload(`/api/projects/${project.id}/export`, `Ficha_${project.title.replace(/ /g, '_')}.json`)}
+                  onClick={generateProjectPDF}
                   disabled={isDownloadingPdf}
                   style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '10px', fontSize: '0.85rem' }}
                 >
@@ -1254,7 +1254,7 @@ export default function ProjectDetailClient({ project, availableOperators = [] }
                 {(session?.user?.role !== 'OPERADOR' && session?.user?.role !== 'SUBCONTRATISTA') && (
                   <button 
                     className="btn btn-primary" 
-                    onClick={() => handleDownload(`/api/projects/${project.id}/export`, `Reporte_${project.title.replace(/ /g, '_')}.json`)}
+                    onClick={generateReport}
                     disabled={isGenerating}
                     style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '10px', fontSize: '0.85rem' }}
                   >
