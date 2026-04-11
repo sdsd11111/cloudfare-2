@@ -82,32 +82,43 @@ export default function CalendarAssistant() {
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      const recorder = new MediaRecorder(stream)
+      
+      const getValidMimeType = () => {
+        const types = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm', 'audio/aac', 'audio/ogg'];
+        for (const t of types) {
+          if (MediaRecorder.isTypeSupported(t)) return t;
+        }
+        return '';
+      }
+
+      const mime = getValidMimeType();
+      const recorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
       
       audioChunksRef.current = []
       recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) audioChunksRef.current.push(e.data)
+        if (e.data && e.data.size > 0) audioChunksRef.current.push(e.data)
       }
 
       recorder.onstop = async () => {
-        const mimeType = audioChunksRef.current[0]?.type || 'audio/webm'
-        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType })
+        const finalMime = mime || 'audio/webm';
+        const audioBlob = new Blob(audioChunksRef.current, { type: finalMime })
         
         let ext = 'webm'
-        if (mimeType.includes('mp4')) ext = 'm4a'
-        else if (mimeType.includes('ogg')) ext = 'ogg'
-        else if (mimeType.includes('wav')) ext = 'wav'
-        else if (mimeType.includes('mpeg')) ext = 'mp3'
+        if (finalMime.includes('mp4')) ext = 'm4a'
+        else if (finalMime.includes('ogg')) ext = 'ogg'
+        else if (finalMime.includes('wav')) ext = 'wav'
+        else if (finalMime.includes('aac')) ext = 'aac'
 
         if (audioBlob.size < 1000) {
            console.warn("Audio blob is suspiciously small (<1KB), might be 0 seconds.");
         }
-        await handleTranscription(audioBlob, ext)
-        // Stop stream tracks
-        stream.getTracks().forEach(track => track.stop())
+        // Instead of immediate dispatch, add a micro-delay in case iOS IO hasn't flushed to memory yet
+        setTimeout(async () => {
+          await handleTranscription(audioBlob, ext)
+          stream.getTracks().forEach(track => track.stop())
+        }, 300)
       }
 
-      // Start without timeslice so iOS/Safari can finalize the MP4 'moov' atom correctly upon stop().
       recorder.start()
       mediaRecorderRef.current = recorder
       setIsRecording(true)
@@ -119,7 +130,6 @@ export default function CalendarAssistant() {
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
-      // Do not call requestData() here, as it forces premature chunks that corrupt MP4 encoders on Safari.
       mediaRecorderRef.current.stop()
       setIsRecording(false)
     }
@@ -129,7 +139,9 @@ export default function CalendarAssistant() {
     setIsLoading(true)
     try {
       const formData = new FormData()
-      formData.append('file', blob, `audio.${ext}`)
+      // Wrap it as a strict File to bypass zero-byte proxying bugs in iOS WebKit fetch implementations
+      const file = new File([blob], `audio.${ext}`, { type: blob.type || 'audio/webm' })
+      formData.append('file', file)
 
       const res = await fetch('/api/media/transcribe', {
         method: 'POST',
