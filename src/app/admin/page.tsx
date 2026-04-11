@@ -3,6 +3,7 @@ import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import DashboardClient from './DashboardClient'
+import OfflinePrefetcher from '@/components/OfflinePrefetcher'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,6 +15,14 @@ export default async function AdminDashboard() {
   if (session?.user?.role === 'SUBCONTRATISTA') {
     redirect('/admin/subcontratista')
   }
+
+  const prefetchUrls = [
+    '/admin/proyectos/nuevo',
+    '/admin/cotizaciones/nuevo',
+    '/admin/inventario',
+    '/admin/equipo',
+    '/admin/clientes'
+  ]
 
   // 7-day metric date
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
@@ -185,24 +194,27 @@ export default async function AdminDashboard() {
   }))
 
   return (
-    <DashboardClient
-      stats={{
-        totalProjects,
-        activeProjects,
-        pendingProjects,
-        completedProjects,
-        leadProjects,
-        totalOperators,
-        totalBudget,
-        totalSpent,
-        totalHours7d,
-        totalMessages7d: recent7DayMessagesCount,
-        totalExpenses7d: weeklyExpenseTotal,
-      }}
-      recentExpenses={serializedExpenses}
-      recentMessages={serializedMessages}
-      activeProjects={serializedProjects}
-      teamList={serializedTeam}
-    />
+    <>
+      <OfflinePrefetcher urls={prefetchUrls} />
+      <DashboardClient
+        stats={{
+          totalProjects,
+          activeProjects,
+          pendingProjects,
+          completedProjects,
+          leadProjects,
+          totalOperators,
+          totalBudget,
+          totalSpent,
+          totalHours7d,
+          totalMessages7d: recent7DayMessagesCount,
+          totalExpenses7d: weeklyExpenseTotal,
+        }}
+        recentExpenses={serializedExpenses}
+        recentMessages={serializedMessages}
+        activeProjects={serializedProjects}
+        teamList={serializedTeam}
+      />
+    </>
   )
 }

@@ -1,7 +1,7 @@
 // ============================================================
 // Aquatech CRM — Custom Service Worker (Offline-First) v14
 // ============================================================
-const CACHE_VERSION = 'v20';
+const CACHE_VERSION = 'v22';
 const STATIC_CACHE = `aquatech-static-${CACHE_VERSION}`;
 const PAGES_CACHE  = `aquatech-pages-${CACHE_VERSION}`;
 const ASSETS_CACHE = `aquatech-assets-${CACHE_VERSION}`;
@@ -15,6 +15,8 @@ const PRE_CACHE = [
   '/cotizacion.jpg',
   '/manifest.json',
   '/admin/operador',
+  '/admin/operador/nuevo',
+  '/admin/proyectos/nuevo',
   '/admin/inventario',
   '/admin/cotizaciones',
   '/admin/cotizaciones/offline',
@@ -453,6 +455,8 @@ async function processOutboxSync() {
           } else if (item.type === 'PHASE_COMPLETE') {
             endpoint = `/api/projects/${item.projectId}/phases/${item.payload.phaseId}`;
             method = 'PATCH';
+          } else if (item.type === 'PROJECT') {
+            endpoint = '/api/projects';
           }
 
           if (endpoint) {

@@ -27,11 +27,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Audio demasiado corto o vacío' }, { status: 400 })
     }
 
-    // Use FormData with Blob for Groq compatibility
+    // Map extension to correct MIME type for Groq
+    const mimeMap: Record<string, string> = {
+      'webm': 'audio/webm',
+      'm4a': 'audio/mp4',
+      'mp4': 'audio/mp4',
+      'wav': 'audio/wav',
+      'ogg': 'audio/ogg',
+      'aac': 'audio/aac'
+    }
+    const contentType = mimeMap[ext] || 'audio/webm'
+
     const groqFormData = new FormData()
-    const audioBlob = new Blob([buffer])
+    // Explicitly define Blob type for Groq's parser
+    const audioBlob = new Blob([buffer], { type: contentType })
     
-    groqFormData.append('file', audioBlob, `audio.${ext || 'm4a'}`)
+    groqFormData.append('file', audioBlob, `audio.${ext || 'webm'}`)
     groqFormData.append('model', 'whisper-large-v3-turbo')
     groqFormData.append('language', 'es')
 

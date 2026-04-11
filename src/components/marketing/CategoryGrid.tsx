@@ -10,17 +10,17 @@ export default function CategoryGrid() {
         
         {/* Row 1: Full-width 50/50 Split */}
         <div className="grid grid-cols-1 md:grid-cols-2 w-full">
-          {/* Card 1: Lifestyle Focus */}
+          {/* Card 1: Nuestros Locales */}
           <div className="relative h-[450px] md:h-[550px] lg:h-[600px] w-full overflow-hidden group">
             <Image 
               src="/aquatech_main_banner_lifestyle_1775927332337.png" 
-              alt="Nuestros locales" 
+              alt="Locales Aquatech" 
               fill
               className="object-cover transition-transform duration-[4000ms] group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-black/15 group-hover:bg-black/5 transition-colors" />
             <div className="absolute bottom-10 left-10 z-10">
-              <h3 className="text-white text-[32px] md:text-[42px] font-[700] tracking-tight leading-tight mb-3">
+              <h3 className="text-white text-[32px] md:text-[42px] font-[700] tracking-tight mb-2">
                 Nuestros locales
               </h3>
               <p className="text-white/90 text-[17px] md:text-[20px] font-[400] mb-6">Loja • Zamora • Machala</p>
@@ -30,16 +30,16 @@ export default function CategoryGrid() {
             </div>
           </div>
 
-          {/* Card 2: Product Focus */}
+          {/* Card 2: Hidromasajes */}
           <div className="relative h-[450px] md:h-[550px] lg:h-[600px] w-full overflow-hidden group bg-[#f5f5f7] flex flex-col items-center justify-center p-10 text-center border-l border-white">
              <div className="relative z-10 mb-8">
-                <h3 className="text-[#1d1d1f] text-[32px] md:text-[42px] font-[700] tracking-tight mb-3 leading-none">Hidromasajes</h3>
-                <p className="text-[#86868b] text-[17px] md:text-[20px] font-[400]">Tecnología en relajación profunda</p>
+                <h3 className="text-[#1d1d1f] text-[32px] md:text-[42px] font-[700] tracking-tight mb-2">Hidromasajes</h3>
+                <p className="text-[#86868b] text-[17px] md:text-[20px] font-[400]">El paraíso de la relajación</p>
              </div>
              <div className="relative w-full h-[300px]">
                 <Image 
                   src="/aquatech_modern_jacuzzi_clean_1775927527209.png" 
-                  alt="Hidromasaje" 
+                  alt="Hidromasaje Premium" 
                   fill
                   className="object-contain transition-transform duration-1000 group-hover:scale-105"
                 />
@@ -52,35 +52,35 @@ export default function CategoryGrid() {
 
         {/* Row 2: Full-width 50/50 Split */}
         <div className="grid grid-cols-1 md:grid-cols-2 w-full border-t border-white">
-          {/* Card 3: Riego Focus */}
+          {/* Card 3: Piletas & Cascadas */}
           <div className="relative h-[450px] md:h-[550px] lg:h-[600px] w-full overflow-hidden group bg-white flex flex-col items-center justify-center p-10 text-center">
              <div className="mb-8">
-                <h3 className="text-[#1d1d1f] text-[32px] md:text-[38px] font-[700] mb-3">Sistemas de Riego</h3>
-                <p className="text-[#86868b] text-[17px]">Ingeniería para el campo</p>
+                <h3 className="text-[#1d1d1f] text-[32px] md:text-[42px] font-[700] mb-2 tracking-tight">Piletas & Cascadas</h3>
+                <p className="text-[#86868b] text-[17px]">El arte del agua en movimiento</p>
              </div>
-             <div className="relative w-full h-[280px]">
+             <div className="relative w-full h-[300px]">
                 <Image 
-                  src="/aquatech_featured_macro_nozzle_1775927508512.png" 
-                  alt="Riego" 
+                  src="/aquatech_piletas_fountain_1775928691030.png" 
+                  alt="Piletas y Cascadas Aquatech" 
                   fill
-                  className="object-contain"
+                  className="object-cover rounded-[24px]"
                 />
              </div>
-             <Link href="/servicios/riego" className="mt-8 bg-[#0071e3] text-white px-8 py-3 rounded-full text-[15px] font-[600] hover:bg-black transition-all">
+             <Link href="/servicios/piletas" className="mt-8 bg-[#0071e3] text-white px-8 py-3 rounded-full text-[15px] font-[600] hover:bg-black transition-all">
                Más información
              </Link>
           </div>
 
-          {/* Card 4: Accesorios Focus */}
+          {/* Card 4: Insumos & Accesorios */}
           <div className="relative h-[450px] md:h-[550px] lg:h-[600px] w-full overflow-hidden group bg-[#fafafa] flex flex-col items-center justify-center p-10 text-center border-l border-gray-50">
              <div className="mb-8">
-                <h3 className="text-[#1d1d1f] text-[32px] md:text-[38px] font-[700] mb-3">Accesorios</h3>
-                <p className="text-[#86868b] text-[17px]">Mantenimiento de vanguardia</p>
+                <h3 className="text-[#1d1d1f] text-[32px] md:text-[42px] font-[700] mb-2 tracking-tight">Insumos & Accesorios</h3>
+                <p className="text-[#86868b] text-[17px]">Mantenimiento e ingeniería técnica</p>
              </div>
              <div className="relative w-full h-[300px]">
                 <Image 
-                  src="/aquatech_modern_jacuzzi_clean_1775927527209.png" 
-                  alt="Accesorios" 
+                  src="/aquatech_pool_accessories_clean_1775928741924.png" 
+                  alt="Accesorios para piscinas" 
                   fill
                   className="object-contain"
                 />

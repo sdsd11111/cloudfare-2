@@ -41,6 +41,7 @@ export default function GlobalSyncWorker() {
           else if (item.type === 'DAY_START') { endpoint = `/api/day-records` }
           else if (item.type === 'DAY_END') { endpoint = `/api/day-records`; method = 'PUT' }
           else if (item.type === 'PHASE_COMPLETE') { endpoint = `/api/projects/${item.projectId}/phases/${item.payload.phaseId}`; method = 'PATCH' }
+          else if (item.type === 'PROJECT') { endpoint = '/api/projects' }
           
           if (endpoint) {
              const res = await fetch(endpoint, {

@@ -118,9 +118,9 @@ export default function CalendarAssistant() {
         else if (finalMime.includes('wav')) ext = 'wav'
         else if (finalMime.includes('aac')) ext = 'aac'
 
-        if (audioBlob.size < 500) {
-           console.warn("Audio too small, skipping.");
-           setMessages(prev => [...prev, { role: 'assistant', content: 'El audio fue muy corto o no se detectó sonido. Intenta hablar más tiempo.' }])
+        if (audioBlob.size < 3000) {
+           console.warn("Audio too small:", audioBlob.size, "skipping.");
+           setMessages(prev => [...prev, { role: 'assistant', content: 'El audio fue muy corto (menos de 1 segundo). Intenta hablar un poco más tiempo.' }])
            stream.getTracks().forEach(track => track.stop())
            return
         }
@@ -166,19 +166,18 @@ export default function CalendarAssistant() {
         body: JSON.stringify({ audio: base64Audio, ext })
       })
 
+      const data = await res.json().catch(() => ({}))
+
       if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}))
-        console.error('API Error:', errJson)
-        throw new Error(errJson.error || 'Error en transcripción')
+        console.error('API Error:', data)
+        throw new Error(data.details || data.error || 'Error en transcripción')
       }
-      
-      const data = await res.json()
       
       if (data.text) {
         await handleSend(data.text)
       }
     } catch (error: any) {
-      setMessages(prev => [...prev, { role: 'assistant', content: error.message || 'No pude entender el audio. ¿Podrías repetirlo?' }])
+      setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${error.message || 'No pude entender el audio. ¿Podrías repetirlo?'}` }])
     } finally {
       setIsLoading(false)
     }

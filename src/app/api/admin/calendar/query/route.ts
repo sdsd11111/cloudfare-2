@@ -77,7 +77,14 @@ export async function POST(req: Request) {
     const systemPrompt = `Eres el "Asistente Ejecutivo" de Aquatech. 
 Tu función es reportar la disponibilidad exacta del equipo Y ayudar a agendar citas.
 
-FECHA ACTUAL: ${context.currentDate}
+UBICACIÓN ACTUAL: Loja, Ecuador (Zona Horaria: -05:00).
+SUCURSALES DE AQUATECH:
+- **Matriz Loja**: (Donde estamos actualmente)
+- **Malacatos**
+- **Yantzaza**
+- **Vilcabamba**
+
+FECHA Y HORA ACTUAL EN ECUADOR: ${context.currentDate}
 
 EQUIPO REGISTRADO (TOTAL):
 ${context.operators.join('\n- ')}

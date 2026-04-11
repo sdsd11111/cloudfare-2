@@ -153,18 +153,49 @@ export default function NuevoProyectoPage() {
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch('/api/clients')
-      .then(r => r.json())
-      .then(data => { if (Array.isArray(data)) setClients(data) })
-      .catch(console.error)
-    // Fetch materials
-    fetch('/api/materials')
-      .then(r => r.ok ? r.json() : [])
-      .then(data => { if (Array.isArray(data)) setMaterials(data) })
-      .catch(err => {
-        console.error('Error fetching materials:', err)
-        setMaterials([])
-      })
+    const loadInitialData = async () => {
+      // 1. Get Clients
+      try {
+        const r = await fetch('/api/clients')
+        if (r.ok) {
+          const data = await r.json()
+          if (Array.isArray(data)) {
+            setClients(data)
+            // Update cache
+            await db.clientsCache.clear()
+            await db.clientsCache.bulkAdd(data)
+          }
+        } else {
+          throw new Error('Fetch status error')
+        }
+      } catch (err) {
+        // Fallback to cache
+        const cached = await db.clientsCache.toArray()
+        if (cached.length > 0) setClients(cached)
+      }
+
+      // 2. Get Materials
+      try {
+        const r = await fetch('/api/materials')
+        if (r.ok) {
+          const data = await r.json()
+          if (Array.isArray(data)) {
+            setMaterials(data)
+            // Update cache
+            await db.materialsCache.clear()
+            await db.materialsCache.bulkAdd(data)
+          }
+        } else {
+          throw new Error('Fetch status error')
+        }
+      } catch (err) {
+        // Fallback to cache
+        const cached = await db.materialsCache.toArray()
+        if (cached.length > 0) setMaterials(cached)
+      }
+    }
+
+    loadInitialData()
   }, [])
 
   const handleNext = () => {
