@@ -79,6 +79,8 @@ export default function CalendarAssistant() {
     }
   }
 
+  const [capturedSize, setCapturedSize] = useState(0)
+
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
@@ -95,8 +97,15 @@ export default function CalendarAssistant() {
       const recorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
       
       audioChunksRef.current = []
+      setCapturedSize(0)
+
       recorder.ondataavailable = (e) => {
-        if (e.data && e.data.size > 0) audioChunksRef.current.push(e.data)
+        if (e.data && e.data.size > 0) {
+          audioChunksRef.current.push(e.data)
+          // Update visual size for user diagnostic
+          const totalSize = audioChunksRef.current.reduce((acc, chunk) => acc + chunk.size, 0)
+          setCapturedSize(Math.round(totalSize / 1024))
+        }
       }
 
       recorder.onstop = async () => {
@@ -109,22 +118,23 @@ export default function CalendarAssistant() {
         else if (finalMime.includes('wav')) ext = 'wav'
         else if (finalMime.includes('aac')) ext = 'aac'
 
-        if (audioBlob.size < 1000) {
-           console.warn("Audio blob is suspiciously small (<1KB), might be 0 seconds.");
+        if (audioBlob.size < 500) {
+           console.warn("Audio too small, skipping.");
+           setMessages(prev => [...prev, { role: 'assistant', content: 'El audio fue muy corto o no se detectó sonido. Intenta hablar más tiempo.' }])
+           stream.getTracks().forEach(track => track.stop())
+           return
         }
-        // Instead of immediate dispatch, add a micro-delay in case iOS IO hasn't flushed to memory yet
-        setTimeout(async () => {
-          await handleTranscription(audioBlob, ext)
-          stream.getTracks().forEach(track => track.stop())
-        }, 300)
+
+        await handleTranscription(audioBlob, ext)
+        stream.getTracks().forEach(track => track.stop())
       }
 
-      recorder.start()
+      recorder.start(250) // Capture chunks every 250ms to keep UI updated
       mediaRecorderRef.current = recorder
       setIsRecording(true)
     } catch (err) {
       console.error('No se pudo acceder al micrófono:', err)
-      alert('Error: No se pudo acceder al micrófono.')
+      alert('Error: No se pudo acceder al micrófono o permisos denegados.')
     }
   }
 
@@ -138,20 +148,28 @@ export default function CalendarAssistant() {
   const handleTranscription = async (blob: Blob, ext: string) => {
     setIsLoading(true)
     try {
-      const formData = new FormData()
-      // Wrap it as a strict File to bypass zero-byte proxying bugs in iOS WebKit fetch implementations
-      const file = new File([blob], `audio.${ext}`, { type: blob.type || 'audio/webm' })
-      formData.append('file', file)
+      // Conversion a Base64 para garantizar integridad en Vercel
+      const reader = new FileReader()
+      const base64Promise = new Promise<string>((resolve) => {
+        reader.onloadend = () => {
+          const base64String = (reader.result as string).split(',')[1]
+          resolve(base64String)
+        }
+        reader.readAsDataURL(blob)
+      })
+
+      const base64Audio = await base64Promise
 
       const res = await fetch('/api/media/transcribe', {
         method: 'POST',
-        body: formData
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ audio: base64Audio, ext })
       })
 
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}))
         console.error('API Error:', errJson)
-        throw new Error('Error en transcripción')
+        throw new Error(errJson.error || 'Error en transcripción')
       }
       
       const data = await res.json()
@@ -159,8 +177,8 @@ export default function CalendarAssistant() {
       if (data.text) {
         await handleSend(data.text)
       }
-    } catch (error) {
-      setMessages(prev => [...prev, { role: 'assistant', content: 'No pude entender el audio. ¿Podrías repetirlo o escribirlo?' }])
+    } catch (error: any) {
+      setMessages(prev => [...prev, { role: 'assistant', content: error.message || 'No pude entender el audio. ¿Podrías repetirlo?' }])
     } finally {
       setIsLoading(false)
     }
@@ -244,7 +262,12 @@ export default function CalendarAssistant() {
                           onTouchEnd={(e) => { e.preventDefault(); stopRecording(); }}
                           onTouchCancel={(e) => { e.preventDefault(); stopRecording(); }}
                         >
-                           {isRecording ? <div className="recording-timer">{recordingDuration}s</div> : <Mic size={20} />}
+                           {isRecording ? (
+                             <div className="recording-status">
+                               <span className="kb-indicator">{capturedSize} KB</span>
+                               <div className="recording-timer">{recordingDuration}s</div>
+                             </div>
+                           ) : <Mic size={20} />}
                         </button>
                     )}
                  </div>

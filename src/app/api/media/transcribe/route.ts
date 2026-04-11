@@ -2,18 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions)
     if (!session) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
-    const reqFormData = await req.formData()
-    const file = reqFormData.get('file') as File | null
+    const { audio, ext } = await req.json()
 
-    if (!file) {
-      return NextResponse.json({ error: 'No se subió ningún archivo' }, { status: 400 })
+    if (!audio) {
+      return NextResponse.json({ error: 'No se recibió audio' }, { status: 400 })
     }
 
     const groqApiKey = process.env.GROQ_API_KEY
@@ -21,13 +20,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Configuración de IA faltante' }, { status: 500 })
     }
 
-    // Explicitly load the file into memory to avoid Next.js stream dropping (0 bytes bug)
-    const arrayBuffer = await file.arrayBuffer()
-    const audioBlob = new Blob([arrayBuffer], { type: file.type })
+    // Decode Base64 string to Node.js Buffer
+    const buffer = Buffer.from(audio, 'base64')
+    
+    if (buffer.byteLength < 250) {
+      return NextResponse.json({ error: 'Audio demasiado corto o vacío' }, { status: 400 })
+    }
 
+    // Use FormData with Blob for Groq compatibility
     const groqFormData = new FormData()
-    // Append the fully loaded Blob with the correct filename
-    groqFormData.append('file', audioBlob, file.name || 'audio.weba')
+    const audioBlob = new Blob([buffer])
+    
+    groqFormData.append('file', audioBlob, `audio.${ext || 'm4a'}`)
     groqFormData.append('model', 'whisper-large-v3-turbo')
     groqFormData.append('language', 'es')
 
@@ -41,14 +45,10 @@ export async function POST(req: NextRequest) {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }))
-      console.error('Groq API Error Detail:', {
-        status: response.status,
-        statusText: response.statusText,
-        error: errorData
-      })
+      console.error('Groq API Error Detail:', errorData)
       return NextResponse.json({ 
-        error: 'Error en la transcripción IA', 
-        details: errorData.error?.message || 'Error en la API de Groq'
+        error: 'Groq rechazó el archivo analizado', 
+        details: errorData.error?.message || 'Error en Groq'
       }, { status: response.status })
     }
 
