@@ -20,14 +20,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Configuración de IA faltante' }, { status: 500 })
     }
 
-    // Decode Base64 string to Node.js Buffer
+    // Log diagnostic info to Vercel logs
     const buffer = Buffer.from(audio, 'base64')
     
-    if (buffer.byteLength < 250) {
-      return NextResponse.json({ error: 'Audio demasiado corto o vacío' }, { status: 400 })
+    if (buffer.byteLength < 500) {
+      console.warn(`Buffer too short: ${buffer.byteLength} bytes`);
+      return NextResponse.json({ error: 'Audio demasiado corto o vacío (servidor)' }, { status: 400 })
     }
 
-    // Map extension to correct MIME type for Groq
+    console.log(`Transcribe request: Buffer size=${buffer.byteLength}, ext=${ext}`);
+
     const mimeMap: Record<string, string> = {
       'webm': 'audio/webm',
       'm4a': 'audio/mp4',
@@ -39,10 +41,12 @@ export async function POST(req: Request) {
     const contentType = mimeMap[ext] || 'audio/webm'
 
     const groqFormData = new FormData()
-    // Explicitly define Blob type for Groq's parser
-    const audioBlob = new Blob([buffer], { type: contentType })
+    // Explicitly use Uint8Array to ensure standard Blob handling in Node.js
+    const audioBlob = new Blob([new Uint8Array(buffer)], { type: contentType })
     
-    groqFormData.append('file', audioBlob, `audio.${ext || 'webm'}`)
+    // Always provide a filename that Whisper expects
+    const safeExt = ext && mimeMap[ext] ? ext : 'm4a'
+    groqFormData.append('file', audioBlob, `audio.${safeExt}`)
     groqFormData.append('model', 'whisper-large-v3-turbo')
     groqFormData.append('language', 'es')
 

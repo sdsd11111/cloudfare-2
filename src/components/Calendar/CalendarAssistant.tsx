@@ -7,6 +7,7 @@ import ReactMarkdown from 'react-markdown'
 interface Message {
   role: 'assistant' | 'user'
   content: string
+  audioUrl?: string
 }
 
 export default function CalendarAssistant() {
@@ -44,12 +45,23 @@ export default function CalendarAssistant() {
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
   }, [isRecording])
 
-  const handleSend = async (text: string) => {
+  const handleSend = async (text: string, skipUIUpdate = false) => {
     if (!text.trim() || isLoading) return
     
     const userMsg: Message = { role: 'user', content: text }
-    const updatedMessages = [...messages, userMsg]
-    setMessages(updatedMessages)
+    let updatedMessagesForAI: Message[]
+
+    if (!skipUIUpdate) {
+      setMessages(prev => [...prev, userMsg])
+      updatedMessagesForAI = [...messages, userMsg]
+    } else {
+      // Si saltamos el update, asumimos que el mensaje ya fue modificado en la UI
+      // pero necesitamos incluirlo en la llamada a la API
+      updatedMessagesForAI = [...messages.map(m => 
+        m.content.includes('transcribiendo...') ? { ...m, content: text } : m
+      )]
+    }
+
     setInput('')
     setIsLoading(true)
 
@@ -58,7 +70,7 @@ export default function CalendarAssistant() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          messages: updatedMessages.map(m => ({ role: m.role, content: m.content })),
+          messages: updatedMessagesForAI.map(m => ({ role: m.role, content: m.content })),
           currentDate: new Date().toISOString() 
         })
       })
@@ -119,42 +131,54 @@ export default function CalendarAssistant() {
         else if (finalMime.includes('aac')) ext = 'aac'
 
         if (audioBlob.size < 3000) {
-           console.warn("Audio too small:", audioBlob.size, "skipping.");
-           setMessages(prev => [...prev, { role: 'assistant', content: 'El audio fue muy corto (menos de 1 segundo). Intenta hablar un poco más tiempo.' }])
+           console.warn(`Audio too small: ${audioBlob.size} bytes (${finalMime}), skipping.`);
+           setMessages(prev => [...prev, { role: 'assistant', content: `El audio fue muy corto o vacío (${Math.round(audioBlob.size/1024)} KB). Por favor mantén presionado y habla claro.` }])
            stream.getTracks().forEach(track => track.stop())
            return
         }
 
+        console.log(`Sending Audio: size=${audioBlob.size}, type=${finalMime}, ext=${ext}`);
         await handleTranscription(audioBlob, ext)
         stream.getTracks().forEach(track => track.stop())
       }
 
-      recorder.start(250) // Capture chunks every 250ms to keep UI updated
+      recorder.start(500) // Slightly longer slice for better stability on mobile
       mediaRecorderRef.current = recorder
       setIsRecording(true)
     } catch (err) {
       console.error('No se pudo acceder al micrófono:', err)
-      alert('Error: No se pudo acceder al micrófono o permisos denegados.')
+      alert('Error: No se pudo acceder al micrófono. Verifica los permisos en tu navegador.')
     }
   }
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop()
       setIsRecording(false)
     }
   }
 
   const handleTranscription = async (blob: Blob, ext: string) => {
+    const audioUrl = URL.createObjectURL(blob)
+    const audioMsg: Message = { 
+      role: 'user', 
+      content: '🎤 Audio enviado (transcribiendo...)',
+      audioUrl 
+    }
+    
+    setMessages(prev => [...prev, audioMsg])
     setIsLoading(true)
+
     try {
       // Conversion a Base64 para garantizar integridad en Vercel
       const reader = new FileReader()
-      const base64Promise = new Promise<string>((resolve) => {
+      const base64Promise = new Promise<string>((resolve, reject) => {
         reader.onloadend = () => {
           const base64String = (reader.result as string).split(',')[1]
+          if (!base64String) reject(new Error('Fallo al convertir audio a Base64'))
           resolve(base64String)
         }
+        reader.onerror = () => reject(new Error('Error leyendo el archivo de audio'))
         reader.readAsDataURL(blob)
       })
 
@@ -174,7 +198,13 @@ export default function CalendarAssistant() {
       }
       
       if (data.text) {
-        await handleSend(data.text)
+        // Actualizar el mensaje de audio con la transcripción
+        setMessages(prev => prev.map(m => 
+          m.audioUrl === audioUrl 
+            ? { ...m, content: `🎤 **Audio transcripto:**\n\n${data.text}` } 
+            : m
+        ))
+        await handleSend(data.text, true) // true para no volver a agregarlo a la UI
       }
     } catch (error: any) {
       setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${error.message || 'No pude entender el audio. ¿Podrías repetirlo?'}` }])
@@ -218,6 +248,11 @@ export default function CalendarAssistant() {
                       {m.role === 'assistant' ? <Bot size={16} /> : <User size={16} />}
                    </div>
                    <div className="msg-content">
+                      {m.audioUrl && (
+                        <div className="audio-player-container">
+                          <audio src={m.audioUrl} controls className="mini-audio" />
+                        </div>
+                      )}
                       <ReactMarkdown>{m.content}</ReactMarkdown>
                    </div>
                 </div>
@@ -448,8 +483,20 @@ export default function CalendarAssistant() {
           line-height: 1.5;
           color: #0f172a;
           background: white;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+          box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+          word-break: break-word;
           border: 1px solid #e2e8f0;
+        }
+
+        .audio-player-container {
+          margin-bottom: 8px;
+          width: 100%;
+        }
+
+        .mini-audio {
+          height: 30px;
+          width: 100%;
+          border-radius: 8px;
         }
 
         .user .msg-content {
@@ -534,13 +581,30 @@ export default function CalendarAssistant() {
         .mic-btn.active {
           background: #ef4444;
           color: white;
-          width: 60px;
+          width: 90px;
           animation: breathe 1.5s infinite;
+          padding: 0 10px;
+        }
+
+        .recording-status {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 2px;
+          line-height: 1;
+        }
+
+        .kb-indicator {
+          font-size: 0.65rem;
+          opacity: 0.9;
+          background: rgba(0,0,0,0.2);
+          padding: 1px 4px;
+          border-radius: 4px;
         }
 
         .recording-timer {
-          font-size: 0.75rem;
-          font-weight: bold;
+          font-size: 0.85rem;
+          font-weight: 800;
         }
 
         .recording-hint {
