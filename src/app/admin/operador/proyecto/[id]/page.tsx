@@ -59,9 +59,10 @@ export default async function OperatorProjectDetail({ params }: { params: Promis
     include: { user: { select: { name: true } }, media: true }
   })
 
-  // Find if user has an active day record for this project
-  const activeDayRecord = await prisma.dayRecord.findFirst({
-    where: { userId, projectId, endTime: null }
+  // Find if user has ANY active day record across ALL projects
+  const globalActiveRecord = await prisma.dayRecord.findFirst({
+    where: { userId, endTime: null },
+    include: { project: { select: { id: true, title: true } } }
   })
 
   // get user's expenses + all project notes
@@ -122,7 +123,12 @@ export default async function OperatorProjectDetail({ params }: { params: Promis
     media: msg.media
   }))
 
-  const safeRecord = activeDayRecord ? { id: activeDayRecord.id, startTime: activeDayRecord.startTime.toISOString() } : null
+  const safeRecord = globalActiveRecord ? { 
+    id: globalActiveRecord.id, 
+    projectId: globalActiveRecord.projectId,
+    projectName: globalActiveRecord.project.title,
+    startTime: globalActiveRecord.startTime.toISOString() 
+  } : null
 
   const safeExpenses = myExpenses.map(e => ({ 
     id: e.id, 
@@ -139,7 +145,7 @@ export default async function OperatorProjectDetail({ params }: { params: Promis
         {...deepSerialize({
           project: safeProject,
           initialChat: safeChat, 
-          activeRecord: safeRecord,
+          activeRecord: safeRecord, // Renamed but serves as "my current active session"
           expenses: safeExpenses,
           userId: userId,
           clientName: project.client?.name || 'Cliente sin nombre',

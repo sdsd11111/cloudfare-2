@@ -219,7 +219,24 @@ export default function ProjectDetailClient({ project, availableOperators = [] }
       }
     }, 5000)
 
-    return () => clearInterval(pollInterval)
+    // Secondary poll for Expenses and general project data (every 15s)
+    const projectPollInterval = setInterval(async () => {
+      if (!navigator.onLine) return
+      try {
+        const resp = await fetch(`/api/projects/${project.id}?_t=${Date.now()}`, { cache: 'no-store' })
+        if (resp.ok) {
+          const freshProject = await resp.json()
+          if (freshProject.expenses) {
+            setExpenses(freshProject.expenses)
+          }
+        }
+      } catch (e) { /* silent */ }
+    }, 15000)
+
+    return () => {
+      clearInterval(pollInterval)
+      clearInterval(projectPollInterval)
+    }
   }, [project.id])
 
   const CATEGORIES = [
@@ -1568,7 +1585,7 @@ export default function ProjectDetailClient({ project, availableOperators = [] }
         <div className="card" style={{ padding: '25px', minHeight: '400px', display: 'flex', flexDirection: 'column' }}>
           
           {/* 1. BITÁCORA INTERACTIVA */}
-          <div style={{ display: activeTab === 'BITACORA' ? 'flex' : 'none', flexDirection: 'column', height: '600px', minHeight: 0, overflow: 'hidden' }}>
+          <div style={{ display: activeTab === 'BITACORA' ? 'flex' : 'none', flexDirection: 'column', height: 'calc(100vh - 250px)', minHeight: '400px', overflow: 'hidden' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text)' }}>Línea de Tiempo del Proyecto</h3>
                 <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', padding: '5px' }}>
@@ -1598,7 +1615,7 @@ export default function ProjectDetailClient({ project, availableOperators = [] }
                     const isAtBottom = target.scrollHeight - target.scrollTop <= target.clientHeight + 50;
                     if (isAtBottom) setHasNewMessages(false);
                   }}
-                  style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '15px', paddingRight: '10px', marginBottom: '20px', minHeight: 0 }}
+                  style={{ flex: 1, overflowY: 'auto', overscrollBehavior: 'contain', display: 'flex', flexDirection: 'column', gap: '15px', paddingRight: '10px', marginBottom: '20px', minHeight: 0 }}
                 >
                   {filteredChat.map((msg: any) => {
                     const isMe = msg.userId === Number(session?.user?.id)
@@ -1763,16 +1780,30 @@ export default function ProjectDetailClient({ project, availableOperators = [] }
                   <div key={item.id} className="group" style={{ position: 'relative', aspectRatio: '1/1', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-surface)' }}>
                     {item.mimeType.startsWith('image/') ? (
                       <img src={item.url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : item.mimeType.startsWith('video/') ? (
+                      <video src={item.url} controls style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : item.mimeType.startsWith('audio/') ? (
+                      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '10px' }}>
+                        <audio src={item.url} controls style={{ width: '100%', height: '40px' }} />
+                        <span style={{ fontSize: '0.7rem', color: 'var(--info)', textAlign: 'center', wordBreak: 'break-all' }}>{item.filename}</span>
+                      </div>
                     ) : (
                       <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
                         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
-                        <span style={{ fontSize: '0.7rem', color: 'var(--info)' }}>{item.filename}</span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--info)', maxWidth: '90%', textAlign: 'center', wordWrap: 'break-word' }}>{item.filename}</span>
                       </div>
                     )}
-                    <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: '0.3s' }} className="group-hover:opacity-100">
-                      <button onClick={() => window.open(item.url, '_blank')} className="btn btn-primary btn-sm">Ver</button>
-                      <button onClick={() => handleDeleteFromGallery(item.id)} className="btn btn-danger btn-sm" style={{ marginLeft: '5px' }}>✕</button>
-                    </div>
+                    {(!item.mimeType.startsWith('video/') && !item.mimeType.startsWith('audio/')) && (
+                      <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: '0.3s' }} className="group-hover:opacity-100">
+                        <button onClick={() => window.open(item.url, '_blank')} className="btn btn-primary btn-sm">Ver</button>
+                        <button onClick={() => handleDeleteFromGallery(item.id)} className="btn btn-danger btn-sm" style={{ marginLeft: '5px' }}>✕</button>
+                      </div>
+                    )}
+                    {(item.mimeType.startsWith('video/') || item.mimeType.startsWith('audio/')) && (
+                      <div style={{ position: 'absolute', top: '5px', right: '5px', zIndex: 10 }}>
+                        <button onClick={() => handleDeleteFromGallery(item.id)} className="btn btn-danger btn-sm" style={{ padding: '4px', fontSize: '10px', minHeight: '0', height: '24px', width: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%' }}>✕</button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -1806,9 +1837,9 @@ export default function ProjectDetailClient({ project, availableOperators = [] }
                 </button>
               </div>
 
-              <div style={{ overflowX: 'auto' }}>
+              <div style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: '500px', overscrollBehavior: 'contain' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
-                  <thead>
+                  <thead style={{ position: 'sticky', top: 0, backgroundColor: 'var(--bg-card)', zIndex: 1 }}>
                     <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)' }}>
                       <th style={{ padding: '12px', textAlign: 'left' }}>Fecha</th>
                       <th style={{ padding: '12px', textAlign: 'left' }}>Responsable</th>

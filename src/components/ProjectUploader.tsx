@@ -99,33 +99,27 @@ export default function ProjectUploader({
         }
 
         // Online Mode: Normal upload
-        const formData = new FormData()
-        
-        if (isImage) {
-          // Compress before sending to avoid memory/bandwidth issues
-          try {
-            const compressedB64 = await optimizedCompress(file)
-            // Convert B64 back to blob for FormData to keep it efficient
-            const resB64 = await fetch(compressedB64)
-            const blob = await resB64.blob()
-            formData.append('file', blob, file.name)
-          } catch (err) {
-            console.error('Compression failed, falling back to original', err)
-            formData.append('file', file)
+        try {
+          const { uploadToBunnyClientSide } = await import('@/lib/storage-client')
+          let uploadFile: File | Blob = file
+
+          if (isImage) {
+            // Compress before sending to avoid memory/bandwidth issues
+            try {
+              const compressedB64 = await optimizedCompress(file)
+              const resB64 = await fetch(compressedB64)
+              uploadFile = await resB64.blob()
+            } catch (err) {
+              console.error('Compression failed, falling back to original', err)
+            }
           }
-        } else {
-          formData.append('file', file)
+
+          const data = await uploadToBunnyClientSide(uploadFile, file.name, 'projects')
+          onAddFile(data)
+        } catch (err) {
+          console.error('Project upload failed:', err)
+          throw err
         }
-
-        const res = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData
-        })
-
-        if (!res.ok) throw new Error('Upload failed')
-        
-        const data = await res.json()
-        onAddFile(data)
       }
     } catch (error) {
       console.error('Error handling files:', error)
@@ -303,6 +297,8 @@ export default function ProjectUploader({
                     onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
                     onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
                   />
+                ) : file.type === 'VIDEO' ? (
+                  <video src={file.url} controls style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
                   <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '10px', textAlign: 'center', gap: '5px' }}>
                     {getIcon(file.type)}
@@ -312,68 +308,80 @@ export default function ProjectUploader({
                   </div>
                 )}
 
-                <div 
-                  className="file-overlay"
-                  style={{ 
-                    position: 'absolute', 
-                    inset: 0, 
-                    backgroundColor: 'rgba(0,0,0,0.6)', 
-                    opacity: 0, 
-                    transition: 'opacity 0.2s', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    gap: '10px' 
-                  }}
-                >
-                  <a 
-                    href={file.url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    style={{ padding: '8px', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white', transition: 'background 0.2s' }}
-                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)'}
-                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-                    title="Ver archivo"
-                  >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                  </a>
-                  <button 
-                    onClick={async (e) => {
-                      e.preventDefault();
-                      try {
-                        const response = await fetch(file.url);
-                        const blob = await response.blob();
-                        const blobUrl = window.URL.createObjectURL(blob);
-                        const link = document.createElement('a');
-                        link.href = blobUrl;
-                        link.download = file.filename;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        window.URL.revokeObjectURL(blobUrl);
-                      } catch (err) {
-                        window.open(file.url, '_blank');
-                      }
+                {file.type !== 'VIDEO' && (
+                  <div 
+                    className="file-overlay"
+                    style={{ 
+                      position: 'absolute', 
+                      inset: 0, 
+                      backgroundColor: 'rgba(0,0,0,0.6)', 
+                      opacity: 0, 
+                      transition: 'opacity 0.2s', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      gap: '10px' 
                     }}
-                    style={{ padding: '8px', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: '8px', border: 'none', cursor: 'pointer', color: 'white', transition: 'background 0.2s' }}
-                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)'}
-                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-                    title="Descargar"
                   >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                  </button>
-                  {!readOnly && onRemoveFile && (
-                    <button 
-                      onClick={() => onRemoveFile(file.url)}
-                      style={{ padding: '8px', backgroundColor: 'rgba(239, 68, 68, 0.2)', borderRadius: '8px', border: 'none', cursor: 'pointer', color: '#f87171', transition: 'background 0.2s' }}
-                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.4)'}
-                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.2)'}
-                      title="Eliminar"
+                    <a 
+                      href={file.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      style={{ padding: '8px', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white', transition: 'background 0.2s' }}
+                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)'}
+                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+                      title="Ver archivo"
                     >
-                      <Trash2 size={20} />
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                    </a>
+                    <button 
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        try {
+                          const response = await fetch(file.url);
+                          const blob = await response.blob();
+                          const blobUrl = window.URL.createObjectURL(blob);
+                          const link = document.createElement('a');
+                          link.href = blobUrl;
+                          link.download = file.filename;
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                          window.URL.revokeObjectURL(blobUrl);
+                        } catch (err) {
+                          window.open(file.url, '_blank');
+                        }
+                      }}
+                      style={{ padding: '8px', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: '8px', border: 'none', cursor: 'pointer', color: 'white', transition: 'background 0.2s' }}
+                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)'}
+                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+                      title="Descargar"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                     </button>
-                  )}
-                </div>
+                    {!readOnly && onRemoveFile && (
+                      <button 
+                        onClick={() => onRemoveFile(file.url)}
+                        style={{ padding: '8px', backgroundColor: 'rgba(239, 68, 68, 0.2)', borderRadius: '8px', border: 'none', cursor: 'pointer', color: '#f87171', transition: 'background 0.2s' }}
+                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.4)'}
+                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.2)'}
+                        title="Eliminar"
+                      >
+                        <Trash2 size={20} />
+                      </button>
+                    )}
+                  </div>
+                )}
+                
+                {file.type === 'VIDEO' && !readOnly && onRemoveFile && (
+                  <button 
+                    onClick={() => onRemoveFile(file.url)}
+                    style={{ position: 'absolute', top: '5px', right: '5px', padding: '4px', backgroundColor: 'rgba(239, 68, 68, 0.8)', borderRadius: '50%', border: 'none', cursor: 'pointer', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10, width: '24px', height: '24px' }}
+                    title="Eliminar"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  </button>
+                )}
 
                 <div style={{ position: 'absolute', top: '8px', left: '8px', padding: '2px 8px', backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', borderRadius: '4px', fontSize: '0.6rem', fontWeight: 'bold', color: 'white', border: '1px solid rgba(255,255,255,0.1)' }}>
                   {file.type}

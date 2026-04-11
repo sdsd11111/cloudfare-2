@@ -261,16 +261,16 @@ export default function QuoteFormClient({ clients, materials, prefetchedProject,
       <div style={{ display: 'grid', gap: '20px', minWidth: 0 }}>
         {/* Client Box */}
         <div className="card shadow-sm" style={{ padding: '25px', borderRadius: '16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
-            <h3 style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '10px', margin: 0 }}>
+          <div className="quote-client-header">
+            <h3 style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '10px', margin: 0, fontSize: '1.1rem' }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              Información del Cliente
+              Datos del Cliente
             </h3>
             
-            <div style={{ display: 'flex', backgroundColor: 'var(--bg-deep)', borderRadius: '30px', padding: '4px', border: '1px solid var(--border-color)', gap: '4px' }}>
+            <div className="client-mode-pills">
               <button type="button" onClick={() => setClientMode('EXISTING')} className={`btn-pill ${clientMode === 'EXISTING' ? 'active' : ''}`}>Existente</button>
               <button type="button" onClick={() => setClientMode('NEW')} className={`btn-pill ${clientMode === 'NEW' ? 'active' : ''}`}>Nuevo</button>
-              <button type="button" onClick={() => setClientMode('CF')} className={`btn-pill-alt ${clientMode === 'CF' ? 'active' : ''}`}>CF</button>
+              <button type="button" onClick={() => setClientMode('CF')} className={`btn-pill-alt ${clientMode === 'CF' ? 'active' : ''}`}>C.F.</button>
             </div>
           </div>
 
@@ -333,7 +333,7 @@ export default function QuoteFormClient({ clients, materials, prefetchedProject,
       </div>
 
       {/* Summary Box */}
-      <div style={{ position: 'sticky', top: '20px' }}>
+      <div className="quote-summary-container">
         <div className="card shadow-lg" style={{ borderTop: '4px solid var(--primary)', borderRadius: '16px', padding: '25px' }}>
           <h3 className="mb-md">Resumen de Cotización</h3>
           
@@ -378,33 +378,68 @@ export default function QuoteFormClient({ clients, materials, prefetchedProject,
           align-items: start;
           min-width: 0;
           width: 100%;
+          margin-bottom: 40px;
+        }
+        .quote-client-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 25px;
+          flex-wrap: wrap;
+          gap: 15px;
+        }
+        .client-mode-pills {
+          display: flex;
+          background-color: var(--bg-deep);
+          border-radius: 30px;
+          padding: 4px;
+          border: 1px solid var(--border-color);
+          gap: 4px;
         }
         .quote-client-fields {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 15px;
+          gap: 20px;
         }
         .quote-full-width {
           grid-column: span 2;
         }
         .btn-pill, .btn-pill-alt {
-          padding: 6px 14px;
+          padding: 8px 16px;
           border-radius: 25px;
-          font-size: 0.75rem;
+          font-size: 0.8rem;
           font-weight: bold;
           border: none;
           cursor: pointer;
           background: transparent;
           color: var(--text-muted);
           transition: all 0.2s;
+          min-height: 38px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
-        .btn-pill.active { background: var(--primary); color: white; }
-        .btn-pill-alt.active { background: var(--secondary); color: white; }
+        .btn-pill.active { background: var(--primary); color: white; box-shadow: 0 2px 8px rgba(56, 189, 248, 0.3); }
+        .btn-pill-alt.active { background: var(--secondary); color: white; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3); }
         
-        @media (max-width: 992px) {
+        .quote-summary-container {
+          position: sticky;
+          top: 20px;
+          z-index: 10;
+        }
+
+        @media (max-width: 1100px) {
           .quote-form-layout { grid-template-columns: 1fr; }
+          .quote-summary-container { position: relative; top: 0; }
+        }
+
+        @media (max-width: 600px) {
+          .quote-client-header { flex-direction: column; align-items: flex-start; }
+          .client-mode-pills { width: 100%; }
+          .btn-pill, .btn-pill-alt { flex: 1; }
           .quote-client-fields { grid-template-columns: 1fr; }
           .quote-full-width { grid-column: span 1; }
+          .card { padding: 20px !important; }
         }
       `}</style>
     </form>

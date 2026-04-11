@@ -48,7 +48,8 @@ export default function CalendarAssistant() {
     if (!text.trim() || isLoading) return
     
     const userMsg: Message = { role: 'user', content: text }
-    setMessages(prev => [...prev, userMsg])
+    const updatedMessages = [...messages, userMsg]
+    setMessages(updatedMessages)
     setInput('')
     setIsLoading(true)
 
@@ -57,13 +58,17 @@ export default function CalendarAssistant() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          query: text,
+          messages: updatedMessages.map(m => ({ role: m.role, content: m.content })),
           currentDate: new Date().toISOString() 
         })
       })
 
       if (!res.ok) throw new Error('Error al consultar la IA')
       const data = await res.json()
+      
+      if (data.reloadCalendar) {
+        window.dispatchEvent(new CustomEvent('calendar-refresh'))
+      }
       
       setMessages(prev => [...prev, { role: 'assistant', content: data.answer || 'No encontré información relevante para esa consulta.' }])
     } catch (error) {
@@ -85,7 +90,8 @@ export default function CalendarAssistant() {
       }
 
       recorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
+        const mimeType = audioChunksRef.current[0]?.type || 'audio/webm'
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType })
         await handleTranscription(audioBlob)
         // Stop stream tracks
         stream.getTracks().forEach(track => track.stop())

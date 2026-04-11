@@ -462,9 +462,11 @@ export default function Sidebar() {
               </>
             ) : (
               <div className="sidebar-user-info">
-                <div className="sidebar-user-name">Cerrar Sesión</div>
-                <div className="sidebar-user-role">
-                  {effectiveRole === 'SUPERADMIN' ? 'Super Administrador' : effectiveRole === 'ADMIN' ? 'Administrador' : 'Administradora'}
+                <div className="sidebar-user-name">
+                  {effectiveRole === 'SUPERADMIN' ? 'Super Admin' : effectiveRole === 'ADMIN' ? 'Administrador' : 'Administradora'} {effectiveName.split(' ')[0]}
+                </div>
+                <div className="sidebar-user-role" style={{ color: 'var(--danger)', marginTop: '2px' }}>
+                  Cerrar Sesión
                 </div>
               </div>
             )}

@@ -7,6 +7,7 @@ import Link from 'next/link'
 import ProjectUploader, { ProjectFile } from '@/components/ProjectUploader'
 import MediaCapture from '@/components/MediaCapture'
 import { generateProfessionalPDF } from '@/lib/pdf-generator'
+import { db } from '@/lib/db'
 
 export default function NuevoProyectoPage() {
   const { data: session } = useSession()
@@ -214,9 +215,13 @@ export default function NuevoProyectoPage() {
     }
 
     if (!navigator.onLine) {
-      const offlineQueue = JSON.parse(localStorage.getItem('offlineProjects') || '[]')
-      offlineQueue.push({ id: Date.now().toString(), payload })
-      localStorage.setItem('offlineProjects', JSON.stringify(offlineQueue))
+      await db.outbox.add({
+        type: 'PROJECT',
+        projectId: 0, // Temporary ID for new project
+        payload: payload,
+        timestamp: Date.now(),
+        status: 'pending'
+      })
       alert('Estás sin conexión. El proyecto se ha guardado localmente y se subirá cuando recuperes la conexión.')
       router.push(`/admin/operador`)
       return
@@ -237,9 +242,13 @@ export default function NuevoProyectoPage() {
       router.push(`/admin/operador`)
     } catch (err: any) {
       if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
-        const offlineQueue = JSON.parse(localStorage.getItem('offlineProjects') || '[]')
-        offlineQueue.push({ id: Date.now().toString(), payload })
-        localStorage.setItem('offlineProjects', JSON.stringify(offlineQueue))
+        await db.outbox.add({
+          type: 'PROJECT',
+          projectId: 0,
+          payload: payload,
+          timestamp: Date.now(),
+          status: 'pending'
+        })
         alert('Problema de red detectado. El proyecto se ha guardado localmente y se subirá automáticamente luego.')
         router.push(`/admin/operador`)
       } else {
@@ -446,8 +455,8 @@ export default function NuevoProyectoPage() {
           {[1, 2, 3, 4, 5].map((num, idx) => (
             <div key={num} className="wizard-step" style={{
               flex: '1 0 auto', 
-              minWidth: '80px',
-              padding: '12px 10px', 
+              minWidth: '60px',
+              padding: '10px 5px', 
               textAlign: 'center', 
               borderBottom: step === num ? '3px solid var(--primary)' : '3px solid transparent',
               color: step === num ? 'var(--primary)' : (step > num ? 'var(--success)' : 'var(--text-muted)'),
@@ -474,7 +483,7 @@ export default function NuevoProyectoPage() {
 
           {step === 1 && (
             <div className="animate-fade-in">
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))', gap: '30px' }}>
                 <div>
                     <div style={inputGroupStyle}>
                         <label style={labelStyle}>Título del Proyecto (o referencia del Lead) *</label>
@@ -743,7 +752,7 @@ export default function NuevoProyectoPage() {
               
               {/* Audio/Video Spec Section */}
               <div className="mb-8">
-                <div className="responsive-2col-equal" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px' }}>
+                <div className="responsive-2col-equal" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))', gap: '15px', marginBottom: '20px' }}>
                   <div className="card-shadow-hover" style={{ backgroundColor: 'var(--bg-surface)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border)' }}>
                     <h4 style={{ margin: '0 0 15px 0', fontSize: '0.9rem', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
@@ -758,14 +767,10 @@ export default function NuevoProyectoPage() {
                         }))
                         
                         // Upload audio to gallery
-                        const formData = new FormData()
-                        formData.append('file', blob, 'especificacion_tecnica_audio.webm')
                         try {
-                          const res = await fetch('/api/upload', { method: 'POST', body: formData })
-                          if (res.ok) {
-                            const data = await res.json()
-                            setUploadedFiles(prev => [...prev, data])
-                          }
+                          const { uploadToBunnyClientSide } = await import('@/lib/storage-client')
+                          const data = await uploadToBunnyClientSide(blob, `nota_voz_op_${Date.now()}.webm`, `projects/temp_${session?.user?.id}`)
+                          setUploadedFiles(prev => [...prev, data])
                         } catch (err) { console.error('Audio upload failed', err) }
                       }}
                     />
@@ -785,14 +790,10 @@ export default function NuevoProyectoPage() {
                         }))
                         
                         // Upload video to gallery
-                        const formData = new FormData()
-                        formData.append('file', blob, 'especificacion_tecnica.webm')
                         try {
-                          const res = await fetch('/api/upload', { method: 'POST', body: formData })
-                          if (res.ok) {
-                            const data = await res.json()
-                            setUploadedFiles(prev => [...prev, data])
-                          }
+                          const { uploadToBunnyClientSide } = await import('@/lib/storage-client')
+                          const data = await uploadToBunnyClientSide(blob, `video_op_${Date.now()}.webm`, `projects/temp_${session?.user?.id}`)
+                          setUploadedFiles(prev => [...prev, data])
                         } catch (err) { console.error('Video upload failed', err) }
                       }}
                     />
@@ -835,9 +836,9 @@ export default function NuevoProyectoPage() {
                   </div>
                   <div style={{ flex: 1 }}>
                     <input type="text" className="form-input mb-3" placeholder="Título de Fase (Ej. Excavación y Drenaje)" value={phase.title} onChange={e => updatePhase(index, 'title', e.target.value)} />
-                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', flexWrap: 'wrap' }} className="mb-3">
+                    <div className="phase-content-layout mb-3">
                         <textarea className="form-input" style={{ flex: '1 1 200px' }} rows={2} placeholder="Descripción teórica de los trabajos a realizar..." value={phase.description} onChange={e => updatePhase(index, 'description', e.target.value)} />
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flexShrink: 0, width: '130px', margin: '0 auto' }}>
+                        <div className="phase-media-capture">
                             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center', fontWeight: 'bold' }}>Grabar Evidencia:</div>
                             <div style={{ display: 'flex', gap: '5px' }}>
                               <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
@@ -848,14 +849,10 @@ export default function NuevoProyectoPage() {
                                         updatePhase(index, 'description', (phase.description ? phase.description + '\n' : '') + '[Audio]: ' + text)
                                         
                                         // Upload audio for this phase to the project gallery
-                                        const formData = new FormData()
-                                        formData.append('file', blob, `fase_${index + 1}_audio.webm`)
                                         try {
-                                          const res = await fetch('/api/upload', { method: 'POST', body: formData })
-                                          if (res.ok) {
-                                            const data = await res.json()
-                                            setUploadedFiles(prev => [...prev, data])
-                                          }
+                                          const { uploadToBunnyClientSide } = await import('@/lib/storage-client')
+                                          const data = await uploadToBunnyClientSide(blob, `fase_${index + 1}_audio.webm`, `projects/temp_${session?.user?.id}`)
+                                          setUploadedFiles(prev => [...prev, data])
                                         } catch (err) { console.error('Phase audio upload failed', err) }
                                     }}
                                 />
@@ -867,14 +864,10 @@ export default function NuevoProyectoPage() {
                                     onCapture={async (blob, type, text) => {
                                         updatePhase(index, 'description', (phase.description ? phase.description + '\n' : '') + '[Video]: ' + text)
                                         // Auto-upload the video for this phase to the project gallery
-                                        const formData = new FormData()
-                                        formData.append('file', blob, `fase_${index + 1}_video.webm`)
                                         try {
-                                          const res = await fetch('/api/upload', { method: 'POST', body: formData })
-                                          if (res.ok) {
-                                            const data = await res.json()
-                                            setUploadedFiles(prev => [...prev, data])
-                                          }
+                                          const { uploadToBunnyClientSide } = await import('@/lib/storage-client')
+                                          const data = await uploadToBunnyClientSide(blob, `fase_${index + 1}_video.webm`, `projects/temp_${session?.user?.id}`)
+                                          setUploadedFiles(prev => [...prev, data])
                                         } catch (err) { console.error('Fase Video upload failed', err) }
                                     }}
                                 />
@@ -1224,6 +1217,34 @@ export default function NuevoProyectoPage() {
         }
         .global-box {
           padding: 20px;
+        }
+        .phase-content-layout {
+          display: flex;
+          gap: 15px;
+          align-items: flex-start;
+        }
+        .phase-media-capture {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          flex-shrink: 0;
+          width: 140px;
+        }
+
+        @media (max-width: 768px) {
+          .phase-content-layout {
+            flex-direction: column;
+            align-items: stretch;
+          }
+          .phase-media-capture {
+            width: 100%;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            background-color: var(--bg-deep);
+            padding: 10px;
+            border-radius: 8px;
+          }
         }
         .wizard-stepper::-webkit-scrollbar {
           display: none;

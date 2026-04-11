@@ -2,6 +2,8 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import { getLocalNow, formatToEcuador } from '@/lib/date-utils'
+import { db } from '@/lib/db'
+import { useLiveQuery } from 'dexie-react-hooks'
 import Link from 'next/link'
 import CalendarView from '@/components/Calendar/CalendarView'
 // Inline SVG icons to match project pattern
@@ -66,15 +68,15 @@ export default function OperatorDashboardClient({
     return () => clearInterval(interval)
   }, [user.id])
 
-  // Offline Project Sync
+  // Syncing projects from Outbox
   useEffect(() => {
-    const syncOfflineProjects = async () => {
+    const syncOutboxProject = async () => {
       if (!navigator.onLine) return
+      
+      const pendingProjects = await db.outbox.where('type').equals('PROJECT').toArray()
+      if (pendingProjects.length === 0) return
 
-      const offlineQueue = JSON.parse(localStorage.getItem('offlineProjects') || '[]')
-      if (offlineQueue.length === 0) return
-
-      for (const item of offlineQueue) {
+      for (const item of pendingProjects) {
         try {
           const resp = await fetch('/api/projects', {
             method: 'POST',
@@ -83,23 +85,43 @@ export default function OperatorDashboardClient({
           })
           
           if (resp.ok) {
-             // remove from queue successfully synced
-             const currentQueue = JSON.parse(localStorage.getItem('offlineProjects') || '[]')
-             const newQueue = currentQueue.filter((p: any) => p.id !== item.id)
-             localStorage.setItem('offlineProjects', JSON.stringify(newQueue))
+            await db.outbox.delete(item.id!)
+            // Re-fetch projects to show the new one
+            const projRes = await fetch('/api/operator/projects')
+            if (projRes.ok) {
+              const freshProjects = await projRes.json()
+              setProjects(freshProjects)
+            }
           }
         } catch (err) {
-          console.error('Failed to sync offline project:', err)
+          console.error('Failed to sync offline project from outbox:', err)
         }
       }
     }
 
-    // Try to sync on mount
-    syncOfflineProjects()
+    syncOutboxProject()
+    window.addEventListener('online', syncOutboxProject)
+    return () => window.removeEventListener('online', syncOutboxProject)
+  }, [])
 
-    // And listen to online events
-    window.addEventListener('online', syncOfflineProjects)
-    return () => window.removeEventListener('online', syncOfflineProjects)
+  // Legacy localStorage Cleanup (One-time)
+  useEffect(() => {
+    const legacy = localStorage.getItem('offlineProjects')
+    if (legacy) {
+      try {
+        const parsed = JSON.parse(legacy)
+        parsed.forEach(async (p: any) => {
+          await db.outbox.add({
+            type: 'PROJECT',
+            projectId: 0,
+            payload: p.payload,
+            timestamp: Date.now(),
+            status: 'pending'
+          })
+        })
+        localStorage.removeItem('offlineProjects')
+      } catch (e) {}
+    }
   }, [])
 
   const totalUnread = useMemo(() => {
@@ -155,7 +177,7 @@ export default function OperatorDashboardClient({
         )}
       </div>
 
-      <div className="tabs" style={{ marginTop: 'var(--space-lg)' }}>
+      <div className="tabs tabs-nowrap" style={{ marginTop: 'var(--space-lg)' }}>
         <button className={`tab ${activeTab === 'TAREAS' ? 'active' : ''}`} onClick={() => setActiveTab('TAREAS')}>
            <ListTodo size={16} style={{marginRight: '8px'}}/> Tareas de Hoy ({todayTasks.length})
         </button>

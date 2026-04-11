@@ -211,7 +211,8 @@ img, video { max-width: 100%; height: auto; }
 
 /* Responsive Grid Helpers */
   .grid-responsive {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
     gap: var(--space-md);
   }
 
@@ -220,6 +221,17 @@ img, video { max-width: 100%; height: auto; }
     grid-template-columns: 1fr;
     gap: var(--space-sm);
   }
+}
+
+.tabs-nowrap {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  scrollbar-width: none !important;
+}
+.tabs-nowrap::-webkit-scrollbar {
+  display: none !important;
 }
 
 /* ──────────────────────────────────────

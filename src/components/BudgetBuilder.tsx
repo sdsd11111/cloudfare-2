@@ -536,60 +536,85 @@ export default function BudgetBuilder({
             gap: 20px !important;
           }
           .budget-table th, .budget-table td {
-            padding: 8px 4px !important;
-            font-size: 0.7rem !important;
+            padding: 10px 6px !important;
+            font-size: 0.8rem !important;
           }
           .tfoot-label {
-            font-size: 0.65rem !important;
-            padding: 8px !important;
-          }
-          .tfoot-value {
-            font-size: 0.75rem !important;
-          }
-          .tfoot-label-total {
             font-size: 0.75rem !important;
             padding: 10px !important;
           }
-          .tfoot-value-total {
-            font-size: 1rem !important;
+          .tfoot-value {
+            font-size: 0.85rem !important;
           }
-          .edit-box, .global-box {
+          .tfoot-label-total {
+            font-size: 0.85rem !important;
             padding: 15px !important;
           }
+          .tfoot-value-total {
+            font-size: 1.1rem !important;
+          }
+          .edit-box, .global-box {
+            padding: 20px !important;
+          }
           .builder-actions {
-            padding: 10px 0 !important;
-            gap: 8px !important;
+            padding: 15px 0 !important;
+            gap: 10px !important;
           }
           .builder-actions .btn {
-            padding: 8px !important;
-            font-size: 0.75rem !important;
-            min-width: 120px !important;
+            padding: 12px !important;
+            font-size: 0.85rem !important;
+            min-width: 130px !important;
           }
         }
 
-        @media (max-width: 480px) {
+        @media (max-width: 600px) {
           .budget-table th:nth-child(1), .budget-table td:nth-child(1) {
             display: none;
           }
+          .budget-table th:nth-child(4), .budget-table td:nth-child(4) {
+            display: none; 
+          }
+          .budget-table th:nth-child(2), .budget-table td:nth-child(2) {
+            padding-left: 10px !important;
+          }
           .budget-table th:nth-child(6), .budget-table td:nth-child(6) {
-            width: 30px !important;
+            width: 35px !important;
           }
           .item-desc {
-            max-width: 100px !important;
-            font-size: 0.65rem !important;
+            max-width: 140px !important;
+            font-size: 0.75rem !important;
           }
           .tfoot-label, .tfoot-label-total {
-            padding: 6px 4px !important;
-            font-size: 0.6rem !important;
+            padding: 10px 8px !important;
+            font-size: 0.7rem !important;
           }
           .tfoot-value-total {
-            font-size: 0.9rem !important;
-          }
-          .delete-btn {
-            width: 22px !important;
-            height: 22px !important;
             font-size: 1rem !important;
           }
+          .delete-btn {
+            width: 32px !important;
+            height: 32px !important;
+            font-size: 1.2rem !important;
+          }
+          .catalog-dropdown {
+            position: fixed;
+            top: 20%;
+            left: 10px;
+            right: 10px;
+            bottom: 20%;
+            height: auto;
+            max-height: none;
+            width: auto;
+          }
+        }
+
+        @media (max-width: 400px) {
+           .item-desc {
+             max-width: 100px !important;
+           }
+           .tfoot-value-total {
+             font-size: 0.9rem !important;
+           }
         }
       `}</style>
     </div>

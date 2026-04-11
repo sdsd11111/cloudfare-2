@@ -24,8 +24,17 @@ export async function POST(req: NextRequest) {
 
     // Prepare Groq request
     const groqFormData = new FormData()
-    // Forzamos el MIME type a audio/webm y un nombre estándar para que la API de Groq no rechace content-types de video
-    const audioContent = new File([file], 'audio.webm', { type: 'audio/webm' })
+    
+    let extension = 'm4a' // Default fallback for generic blobs without type
+    if (file.type) {
+      if (file.type.includes('webm')) extension = 'webm'
+      else if (file.type.includes('mp4')) extension = 'm4a'
+      else if (file.type.includes('ogg')) extension = 'ogg'
+      else if (file.type.includes('wav')) extension = 'wav'
+      else if (file.type.includes('mpeg')) extension = 'mp3'
+    }
+
+    const audioContent = new File([file], `audio.${extension}`, { type: file.type || 'audio/m4a' })
     groqFormData.append('file', audioContent)
     groqFormData.append('model', model)
     groqFormData.append('language', 'es') // Spanish as default

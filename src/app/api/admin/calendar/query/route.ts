@@ -14,7 +14,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { query, currentDate } = await req.json()
+    const { query, messages, currentDate } = await req.json()
     
     let referenceDate: Date
     try {
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
     // Prepare context for Groq
     const context = {
       currentDate: formatToEcuador(referenceDate),
-      operators: operators.map(o => `${o.name} (${o.role})`),
+      operators: operators.map(o => `ID: ${o.id} | Nombre: ${o.name} (${o.role})`),
       appointments: appointments.map(a => ({
         operator: a.user.name,
         title: a.title,
@@ -91,9 +91,18 @@ REGLAS DE ORO:
    - Si NO tiene ninguna tarea a esa hora (o ni siquiera aparece en la agenda), está LIBRE.
 2. IMPORTANTE: Si solo ves a una persona ocupada en la agenda, significa que TODOS LOS DEMÁS de la lista "EQUIPO REGISTRADO" están LIBRES. No digas que no hay más registrados.
 3. Formato obligatorio: 
-   - LIBRES: **Nombres separados por coma** (o "Todo el equipo" si aplica)
-   - OCUPADOS: **Nombre** (Tarea: Título)
-4. NO SALUDES ni des introducciones. Sé extremadamente breve.`
+   - Usa SIEMPRE listas con viñetas (bullet points) y listas ordenadas para organizar la información de forma visual, clara y estructurada.
+   - Ejemplo:
+     * **LIBRES:** Juan, Pedro, María
+     * **OCUPADOS:** 
+       - **Carlos** (Tarea: Mantenimiento)
+4. NO SALUDES ni des introducciones. Sé extremadamente breve, ordenado y usa Markdown.
+5. AGENDAMIENTO: Si el usuario quiere crear una cita o agendar a alguien, verifica que tengas: ID del Operador (basado en el nombre), Título de la tarea, Hora de inicio y Hora de fin. Si te falta alguno (como la hora o quién), PREGÚNTALE AL USUARIO qué falta. Si tienes todo, usa la herramienta "crear_cita" provista.`
+
+    const apiMessages = [
+      { role: 'system', content: systemPrompt },
+      ...(messages || (query ? [{ role: 'user', content: query }] : []))
+    ]
 
     const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -103,10 +112,28 @@ REGLAS DE ORO:
       },
       body: JSON.stringify({
         model: 'llama-3.3-70b-versatile',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: query }
+        messages: apiMessages,
+        tools: [
+          {
+            type: "function",
+            function: {
+              name: "crear_cita",
+              description: "Programa una cita o evento en la agenda de un operador.",
+              parameters: {
+                type: "object",
+                properties: {
+                  operatorId: { type: "integer", description: "El ID numérico del operador obtenido de EQUIPO REGISTRADO." },
+                  title: { type: "string", description: "Título breve de la tarea/cita." },
+                  startTime: { type: "string", description: "Fecha y hora de inicio en formato ISO 8601 (Ej: 2026-04-10T15:00:00.000Z). Debe considerar la fecha actual para deducir 'mañana' o el día correspondiente." },
+                  endTime: { type: "string", description: "Fecha y hora de finalización en formato ISO 8601." },
+                  description: { type: "string", description: "Descripción detallada (opcional)." }
+                },
+                required: ["operatorId", "title", "startTime", "endTime"]
+              }
+            }
+          }
         ],
+        tool_choice: "auto",
         temperature: 0.1,
         max_tokens: 1000
       })
@@ -119,7 +146,59 @@ REGLAS DE ORO:
     }
 
     const data = await groqResponse.json()
-    const answer = data.choices[0].message.content
+    const responseMessage = data.choices[0].message
+    
+    // Check if the AI wants to call a tool
+    if (responseMessage.tool_calls && responseMessage.tool_calls.length > 0) {
+      const toolCall = responseMessage.tool_calls[0]
+      if (toolCall.function.name === 'crear_cita') {
+        const args = JSON.parse(toolCall.function.arguments)
+        
+        // 1. Verify Collision
+        const start = new Date(args.startTime)
+        const end = new Date(args.endTime)
+        
+        if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+           return NextResponse.json({ answer: 'Hubo un error interpretando la hora ingresada. ¿Podrías ser más específico con el formato de fecha?' })
+        }
+        
+        const collision = await prisma.appointment.findFirst({
+           where: {
+             userId: args.operatorId,
+             status: { not: 'CANCELADO' },
+             OR: [
+               { startTime: { lt: end }, endTime: { gt: start } }
+             ]
+           }
+        })
+        
+        if (collision) {
+           return NextResponse.json({ 
+             answer: `⚠️ **¡Atención! Choque de horarios detectado.**\n\nEl operador seleccionado ya tiene la tarea **"${collision.title}"** agendada en ese rango horario (${formatToEcuador(collision.startTime)}). Por seguridad, la cita nueva ha sido denegada. Intenta con un horario diferente o reasígnalo a otro equipo.` 
+           })
+        }
+        
+        // 2. Safe to create
+        await prisma.appointment.create({
+          data: {
+            userId: args.operatorId,
+            projectId: null,
+            title: args.title,
+            description: args.description || '',
+            startTime: start,
+            endTime: end,
+            status: 'PENDIENTE',
+          }
+        })
+        
+        return NextResponse.json({ 
+          answer: `✅ **¡Cita agendada exitosamente!**\n\nHe registrado la tarea **"${args.title}"** sin conflictos de horario en el calendario.`,
+          reloadCalendar: true 
+        })
+      }
+    }
+
+    const answer = responseMessage.content
 
     return NextResponse.json({ answer })
 

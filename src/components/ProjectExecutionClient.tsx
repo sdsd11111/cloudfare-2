@@ -35,6 +35,9 @@ export default function ProjectExecutionClient({
   const userRole = session?.user?.role
   const isFieldStaff = userRole === 'OPERADOR' || userRole === 'SUBCONTRATISTA'
   
+  const hasActiveRecordInThisProject = activeRecord && Number(activeRecord.projectId) === Number(project.id);
+  const hasActiveRecordInOtherProject = activeRecord && !hasActiveRecordInThisProject;
+  
   const [isPending, startTransition] = useTransition()
   const searchParams = useSearchParams()
   const [activeTab, setActiveTab] = useState<'records' | 'chat'>(() => {
@@ -362,7 +365,7 @@ export default function ProjectExecutionClient({
         return
       }
 
-      const isEnding = !!activeRecord
+      const isEnding = activeRecord && Number(activeRecord.projectId) === Number(project.id)
       const payload = isEnding 
         ? { recordId: activeRecord.id, projectId: project.id, location }
         : { projectId: project.id, location }
@@ -574,8 +577,14 @@ export default function ProjectExecutionClient({
         })
       }
 
-      if (!activeRecord && !pendingDayAction) {
-        alert("⚠️ JORNADA NO INICIADA: Debes pulsar 'Iniciar Jornada' antes de registrar avances o notas.")
+      if (customMsg === undefined && !activeRecord) {
+        // Only require jornada for technical advances or specific actions, not general text/replies
+        // Allow text messages without jornada if it's just a note or general chat
+      }
+
+      const isTechnicalAction = mediaFile || customPhase !== undefined
+      if (isTechnicalAction && !activeRecord) {
+        alert("⚠️ JORNADA NO INICIADA: Debes pulsar 'Iniciar Jornada' antes de registrar bitácora técnica o archivos.")
         setLoading(false)
         return
       }
@@ -1090,7 +1099,16 @@ export default function ProjectExecutionClient({
               </details>
             </div>
           </div>
-          <span className={`status-badge status-${project.status.toLowerCase()}`} style={{ fontSize: isSmallScreen ? '0.7rem' : '0.8rem', padding: isSmallScreen ? '2px 8px' : '4px 12px', flexShrink: 0 }}>
+          <span style={{ 
+            backgroundColor: project.status === 'ACTIVO' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)', 
+            color: project.status === 'ACTIVO' ? 'var(--success)' : 'var(--warning)', 
+            padding: '4px 10px', 
+            borderRadius: '20px', 
+            fontSize: '0.75rem', 
+            fontWeight: 'bold',
+            display: 'inline-block',
+            marginTop: '10px'
+          }}>
             {project.status === 'ACTIVO' ? 'Activo' : 'Pendiente'}
           </span>
         </div>
@@ -1146,14 +1164,14 @@ export default function ProjectExecutionClient({
               display: 'flex',
               alignItems: 'center',
               gap: '10px',
-              padding: '14px 28px',
+              padding: isSmallScreen ? '10px 16px' : '14px 28px',
               borderRadius: '16px',
               background: activeTab === tab.id ? tab.gradient : 'rgba(255,255,255,0.05)',
               color: activeTab === tab.id ? '#000' : tab.activeColor,
               border: `1px solid ${activeTab === tab.id ? 'transparent' : 'rgba(255,255,255,0.1)'}`,
               cursor: 'pointer',
               fontWeight: '900',
-              fontSize: '1.1rem',
+              fontSize: isSmallScreen ? '0.9rem' : '1.1rem',
               textTransform: 'uppercase',
               letterSpacing: '1px',
               transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
@@ -1176,19 +1194,25 @@ export default function ProjectExecutionClient({
       <div className="tab-content" style={{ flex: isSmallScreen ? 1 : 'none', display: 'flex', flexDirection: 'column', overflow: isSmallScreen ? 'hidden' : 'visible' }}>
         {/* 1. REGISTROS */}
         <div style={{ display: activeTab === 'records' ? 'grid' : 'none', gap: '20px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))', gap: '20px' }}>
               <div className="card" style={{ minWidth: 0 }}>
                 <h3 style={{ fontSize: '1.2rem', marginBottom: '15px' }}>Registro de Jornada</h3>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '20px', overflowWrap: 'break-word', wordBreak: 'break-word' }}>
                   Registra tu hora de entrada y salida para contabilizar tus horas en obra.
                 </p>
+                {hasActiveRecordInOtherProject && (
+                  <div style={{ marginBottom: '15px', padding: '10px 15px', backgroundColor: 'rgba(245, 158, 11, 0.1)', color: 'var(--warning)', borderRadius: '8px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    <span>Jornada activa en: <strong>{activeRecord.projectName}</strong>.</span>
+                  </div>
+                )}
                 <button 
-                  className={`btn btn-lg btn-full ${activeRecord || (pendingDayAction && pendingDayAction.type === 'DAY_START') ? 'btn-danger' : 'btn-primary'}`} 
+                  className={`btn btn-lg btn-full ${hasActiveRecordInThisProject || (pendingDayAction && pendingDayAction.type === 'DAY_START') ? 'btn-danger' : 'btn-primary'}`} 
                   onClick={handleDayRecord}
-                  disabled={loading}
+                  disabled={loading || hasActiveRecordInOtherProject}
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
                 >
-                  {loading ? 'Cargando...' : (activeRecord || (pendingDayAction && pendingDayAction.type === 'DAY_START')) ? (
+                  {loading ? 'Cargando...' : (hasActiveRecordInThisProject || (pendingDayAction && pendingDayAction.type === 'DAY_START')) ? (
                     <>
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
                       {pendingDayAction?.type === 'DAY_START' ? 'Fichar Salida (Pendiente)' : 'Terminar Jornada'}
@@ -1738,7 +1762,7 @@ export default function ProjectExecutionClient({
                   const isAtBottom = target.scrollHeight - target.scrollTop <= target.clientHeight + 50;
                   if (isAtBottom) setHasNewMessages(false);
                 }}
-                style={{ flex: 1, overflowY: 'auto', minHeight: 0, paddingTop: '12px', paddingLeft: '12px', paddingRight: '12px', paddingBottom: isSmallScreen ? '80px' : '20px', display: 'flex', flexDirection: 'column', gap: '4px' }}
+                style={{ flex: 1, overflowY: 'auto', overscrollBehavior: 'contain', minHeight: 0, paddingTop: '12px', paddingLeft: '12px', paddingRight: '12px', paddingBottom: isSmallScreen ? '80px' : '20px', display: 'flex', flexDirection: 'column', gap: '4px' }}
               >
                 {filteredChat.length === 0 ? (
                 <div style={{ margin: 'auto', textAlign: 'center', color: 'var(--text-muted)' }}>

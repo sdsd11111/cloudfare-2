@@ -258,43 +258,9 @@ export async function DELETE(request: Request) {
           data: { userId: adminId }
         })
 
-        // --- 2. CHAT MESSAGES ---
-        await tx.chatMessage.updateMany({
-          where: { userId: userIdToDelete },
-          data: { userId: adminId }
-        })
-
-        // --- 3. EXPENSES ---
-        await tx.expense.updateMany({
-          where: { userId: userIdToDelete },
-          data: { userId: adminId }
-        })
-
-        // --- 4. DAY RECORDS ---
-        await tx.dayRecord.updateMany({
-          where: { userId: userIdToDelete },
-          data: { userId: adminId }
-        })
-
-        // --- 5. PHASE COMPLETIONS ---
-        // Handle unique constraint phaseId_userId
-        const userCompletions = await tx.phaseCompletion.findMany({
-          where: { userId: userIdToDelete }
-        })
-        
-        for (const comp of userCompletions) {
-          const exists = await tx.phaseCompletion.findUnique({
-            where: { phaseId_userId: { phaseId: comp.phaseId, userId: adminId } }
-          })
-          if (exists) {
-            await tx.phaseCompletion.delete({ where: { id: comp.id } })
-          } else {
-            await tx.phaseCompletion.update({
-              where: { id: comp.id },
-              data: { userId: adminId }
-            })
-          }
-        }
+        // --- 2-5. HISTORICAL LOGS ---
+        // We NO LONGER reassign ChatMessages, Expenses, DayRecords, or PhaseCompletions.
+        // We keep them tied to the deactivated user so their specific name is still displayed natively.
 
         // --- 6. PROJECTS (As Creator) ---
         await tx.project.updateMany({
@@ -325,10 +291,19 @@ export async function DELETE(request: Request) {
           where: { userId: userIdToDelete }
         })
 
+        // Determine new name
+        let deletedName = originalName
+        if (userToDeactivate.role === 'OPERATOR' || userToDeactivate.role === 'SUBCONTRATISTA') {
+          deletedName = `Admin Aquatech/ Operador ${originalName}`
+        } else if (userToDeactivate.role === 'ADMIN' || userToDeactivate.role === 'ADMINISTRADORA' || userToDeactivate.role === 'SUPERADMIN') {
+          deletedName = `${originalName} Administrador`
+        }
+
         // 3. Deactivate User and Free Credentials
         await tx.user.update({
           where: { id: userIdToDelete },
           data: { 
+            name: deletedName,
             isActive: false,
             email: `${userToDeactivate.email || ''}_del_${Date.now()}`, 
             username: `${userToDeactivate.username}_old_${Date.now()}`,

@@ -732,15 +732,10 @@ export default function NuevoProyectoPage() {
                         }))
                         
                         // Upload audio to gallery
-                        const formData = new FormData()
-                        const fileName = `nota_voz_${Date.now()}.webm`
-                        formData.append('file', blob, fileName)
                         try {
-                          const res = await fetch('/api/upload', { method: 'POST', body: formData })
-                          if (res.ok) {
-                            const data = await res.json()
-                            setUploadedFiles(prev => [...prev, data])
-                          }
+                          const { uploadToBunnyClientSide } = await import('@/lib/storage-client')
+                          const data = await uploadToBunnyClientSide(blob, `nota_voz_${Date.now()}.webm`, `projects/temp_${session?.user?.id}`)
+                          setUploadedFiles(prev => [...prev, data])
                         } catch (err) { console.error('Audio upload failed', err) }
                       }}
                     />
@@ -760,20 +755,12 @@ export default function NuevoProyectoPage() {
                         }))
                         
                         // Upload video to gallery
-                        const formData = new FormData()
-                        const fileName = `video_especificacion_${Date.now()}.webm`
-                        formData.append('file', blob, fileName)
                         try {
-                          console.log('Iniciando subida de video a galería...', fileName)
-                          const res = await fetch('/api/upload', { method: 'POST', body: formData })
-                          if (res.ok) {
-                            const data = await res.json()
-                            console.log('Video subido con éxito:', data)
-                            setUploadedFiles(prev => [...prev, data])
-                          } else {
-                            const errorText = await res.text()
-                            console.error('Error en respuesta de subida de video:', errorText)
-                          }
+                          console.log('Iniciando subida de video a galería...')
+                          const { uploadToBunnyClientSide } = await import('@/lib/storage-client')
+                          const data = await uploadToBunnyClientSide(blob, `video_especificacion_${Date.now()}.webm`, `projects/temp_${session?.user?.id}`)
+                          console.log('Video subido con éxito:', data)
+                          setUploadedFiles(prev => [...prev, data])
                         } catch (err) { console.error('Excepción al subir video:', err) }
                       }}
                     />
@@ -818,11 +805,11 @@ export default function NuevoProyectoPage() {
                   </div>
                   <div style={{ flex: 1 }}>
                     <input type="text" className="form-input mb-3" placeholder="Título de Fase (Ej. Excavación y Drenaje)" value={phase.title} onChange={e => updatePhase(index, 'title', e.target.value)} />
-                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }} className="mb-3">
+                    <div className="phase-content-layout mb-3">
                         <textarea className="form-input" rows={2} placeholder="Descripción teórica de los trabajos a realizar..." value={phase.description} onChange={e => updatePhase(index, 'description', e.target.value)} />
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flexShrink: 0, width: '130px', margin: '0 auto' }}>
+                        <div className="phase-media-capture">
                             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center', fontWeight: 'bold' }}>Grabar Evidencia:</div>
-                            <div style={{ display: 'flex', gap: '5px' }}>
+                            <div style={{ display: 'flex', gap: '5px', justifyContent: 'center' }}>
                               <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
                                 <MediaCapture 
                                     mode="audio" 
@@ -831,14 +818,10 @@ export default function NuevoProyectoPage() {
                                         updatePhase(index, 'description', (phase.description || '') + ' ' + text)
                                         
                                         // Upload audio for this phase to the project gallery
-                                        const formData = new FormData()
-                                        formData.append('file', blob, `fase_${index + 1}_audio.webm`)
                                         try {
-                                          const res = await fetch('/api/upload', { method: 'POST', body: formData })
-                                          if (res.ok) {
-                                            const data = await res.json()
-                                            setUploadedFiles(prev => [...prev, data])
-                                          }
+                                          const { uploadToBunnyClientSide } = await import('@/lib/storage-client')
+                                          const data = await uploadToBunnyClientSide(blob, `fase_${index + 1}_audio.webm`, `projects/temp_${session?.user?.id}`)
+                                          setUploadedFiles(prev => [...prev, data])
                                         } catch (err) { console.error('Phase audio upload failed', err) }
                                     }}
                                 />
@@ -851,14 +834,10 @@ export default function NuevoProyectoPage() {
                                         updatePhase(index, 'description', (phase.description || '') + ' ' + text)
                                         
                                         // Upload video for this phase to the project gallery
-                                        const formData = new FormData()
-                                        formData.append('file', blob, `fase_${index + 1}_video.webm`)
                                         try {
-                                          const res = await fetch('/api/upload', { method: 'POST', body: formData })
-                                          if (res.ok) {
-                                            const data = await res.json()
-                                            setUploadedFiles(prev => [...prev, data])
-                                          }
+                                          const { uploadToBunnyClientSide } = await import('@/lib/storage-client')
+                                          const data = await uploadToBunnyClientSide(blob, `fase_${index + 1}_video.webm`, `projects/temp_${session?.user?.id}`)
+                                          setUploadedFiles(prev => [...prev, data])
                                         } catch (err) { console.error('Fase Video upload failed', err) }
                                     }}
                                 />
@@ -1042,6 +1021,36 @@ export default function NuevoProyectoPage() {
         .wizard-stepper {
           -ms-overflow-style: none;
           scrollbar-width: none;
+        }
+      `}</style>
+      <style jsx>{`
+        .phase-content-layout {
+          display: flex;
+          gap: 15px;
+          align-items: flex-start;
+        }
+        .phase-media-capture {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          flex-shrink: 0;
+          width: 140px;
+        }
+
+        @media (max-width: 768px) {
+          .phase-content-layout {
+            flex-direction: column;
+            align-items: stretch;
+          }
+          .phase-media-capture {
+            width: 100%;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            background-color: var(--bg-deep);
+            padding: 10px;
+            border-radius: 8px;
+          }
         }
       `}</style>
     </div>

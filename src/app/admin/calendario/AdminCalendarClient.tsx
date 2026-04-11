@@ -34,6 +34,10 @@ export default function AdminCalendarClient({ operators, projects }: AdminCalend
 
   useEffect(() => {
     fetchAppointments()
+
+    const handleRefresh = () => fetchAppointments(true)
+    window.addEventListener('calendar-refresh', handleRefresh)
+    return () => window.removeEventListener('calendar-refresh', handleRefresh)
   }, [selectedOperatorId])
 
   const handleSaveAppointment = async (data: any) => {
