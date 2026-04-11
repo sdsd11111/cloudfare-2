@@ -105,6 +105,14 @@ export default function CalendarAssistant() {
 
   const [capturedSize, setCapturedSize] = useState(0)
 
+  const toggleRecording = () => {
+    if (isRecording) {
+      stopRecording()
+    } else {
+      startRecording()
+    }
+  }
+
   const startRecording = async () => {
     try {
       if (typeof window !== 'undefined' && navigator.vibrate) {
@@ -158,11 +166,7 @@ export default function CalendarAssistant() {
         const audioBlob = new Blob(chunks, { type: mime || 'audio/webm' })
         setCapturedSize(Math.round(audioBlob.size / 1024))
 
-        if (audioBlob.size < 100) { // Menos de 100 bytes es definitivamente ruido/error
-           setMessages(prev => [...prev, { 
-             role: 'assistant', 
-             content: `Audio demasiado corto. Intenta hablar nuevamente.` 
-           }])
+        if (audioBlob.size < 200) { 
            stream.getTracks().forEach(track => track.stop())
            return
         }
@@ -174,7 +178,7 @@ export default function CalendarAssistant() {
       audioChunksRef.current = chunks
       mediaRecorderRef.current = recorder
       
-      recorder.start() // Sin intervalos, modo Proyectos (más estable)
+      recorder.start()
       setIsRecording(true)
       setCapturedSize(0)
 
@@ -184,8 +188,7 @@ export default function CalendarAssistant() {
     }
   }
 
-  const stopRecording = (e?: any) => {
-    if (e && e.preventDefault) e.preventDefault()
+  const stopRecording = () => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
       mediaRecorderRef.current.stop()
       setIsRecording(false)
@@ -321,12 +324,7 @@ export default function CalendarAssistant() {
                     ) : (
                         <button 
                           className={`mic-btn ${isRecording ? 'active' : ''}`}
-                          onMouseDown={startRecording}
-                          onMouseUp={stopRecording}
-                          onMouseLeave={stopRecording}
-                          onTouchStart={(e) => { e.preventDefault(); startRecording(); }}
-                          onTouchEnd={(e) => { e.preventDefault(); stopRecording(); }}
-                          onTouchCancel={(e) => { e.preventDefault(); stopRecording(); }}
+                          onClick={toggleRecording}
                         >
                            {isRecording ? (
                              <div className="recording-status">
@@ -341,7 +339,7 @@ export default function CalendarAssistant() {
                     )}
                  </div>
               </div>
-              {isRecording && <p className="recording-hint">Mantén presionado para grabar</p>}
+              {isRecording && <p className="recording-hint">Pulsa para detener la grabación</p>}
            </div>
         </div>
       )}

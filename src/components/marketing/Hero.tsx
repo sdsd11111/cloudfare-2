@@ -7,24 +7,24 @@ import { motion, AnimatePresence } from 'framer-motion'
 
 const slides = [
   {
-    image: '/aquatech_main_banner_lifestyle_1775927332337.png',
-    mobileImage: '/aquatech_main_banner_lifestyle_1775927332337.png', // Optional: fallbacks to main image
+    image: 'https://cesarweb.b-cdn.net/home/hero-slider-1.webp',
+    mobileImage: 'https://cesarweb.b-cdn.net/home/hero-mobile-1.webp',
     title: 'Construye hoy,',
     highlight: 'disfruta siempre.',
     promo: 'Difiérelo a 12 meses',
     gracia: '+6 meses de gracia',
   },
   {
-    image: '/aquatech_piletas_fountain_1775928691030.png',
-    mobileImage: '/aquatech_piletas_fountain_1775928691030.png',
+    image: 'https://cesarweb.b-cdn.net/home/hero-slider-2.webp',
+    mobileImage: 'https://cesarweb.b-cdn.net/home/hero-mobile-2.webp',
     title: 'El arte del',
     highlight: 'agua en movimiento.',
     promo: 'Piletas & Cascadas Pro',
     gracia: 'Ingeniería de Vanguardia',
   },
   {
-    image: '/aquatech_modern_jacuzzi_clean_1775927527209.png',
-    mobileImage: '/aquatech_modern_jacuzzi_clean_1775927527209.png',
+    image: 'https://cesarweb.b-cdn.net/home/hero-slider-3.webp',
+    mobileImage: 'https://cesarweb.b-cdn.net/home/hero-mobile-3.webp',
     title: 'Tu paraíso',
     highlight: 'de relajación.',
     promo: 'Hidromasajes Premium',

@@ -31,7 +31,7 @@ export function FeaturedProduct() {
         {/* Main High Contrast Product Image */}
         <div className="relative w-full max-w-[900px] aspect-[16/10] mb-20">
           <Image 
-            src="/aquatech_featured_macro_nozzle_1775927508512.png" 
+            src="https://cesarweb.b-cdn.net/home/s.jpg" 
             alt="Aquatech Nozzle Pro" 
             fill
             className="object-contain"

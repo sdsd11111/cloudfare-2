@@ -13,7 +13,7 @@ export default function CategoryGrid() {
           {/* Card 1: Nuestros Locales */}
           <div className="relative h-[450px] md:h-[550px] lg:h-[600px] w-full overflow-hidden group">
             <Image 
-              src="/aquatech_main_banner_lifestyle_1775927332337.png" 
+              src="https://cesarweb.b-cdn.net/home/locales-lifestyle.webp" 
               alt="Locales Aquatech" 
               fill
               className="object-cover transition-transform duration-[4000ms] group-hover:scale-105"
@@ -38,7 +38,7 @@ export default function CategoryGrid() {
              </div>
              <div className="relative w-full h-[300px]">
                 <Image 
-                  src="/aquatech_modern_jacuzzi_clean_1775927527209.png" 
+                  src="https://cesarweb.b-cdn.net/home/hidromasaje-card.webp" 
                   alt="Hidromasaje Premium" 
                   fill
                   className="object-contain transition-transform duration-1000 group-hover:scale-105"
@@ -60,7 +60,7 @@ export default function CategoryGrid() {
              </div>
              <div className="relative w-full h-[300px]">
                 <Image 
-                  src="/aquatech_piletas_fountain_1775928691030.png" 
+                  src="https://cesarweb.b-cdn.net/home/piletas-card.webp" 
                   alt="Piletas y Cascadas Aquatech" 
                   fill
                   className="object-cover rounded-[24px]"
@@ -79,7 +79,7 @@ export default function CategoryGrid() {
              </div>
              <div className="relative w-full h-[300px]">
                 <Image 
-                  src="/aquatech_pool_accessories_clean_1775928741924.png" 
+                  src="https://cesarweb.b-cdn.net/home/accesorios-card.webp" 
                   alt="Accesorios para piscinas" 
                   fill
                   className="object-contain"
