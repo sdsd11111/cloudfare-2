@@ -10,8 +10,7 @@ export async function POST(req: NextRequest) {
     }
 
     const formData = await req.formData()
-    const file = formData.get('file') as any
-    const model = 'whisper-large-v3'
+    const file = formData.get('file')
 
     if (!file) {
       return NextResponse.json({ error: 'No se subió ningún archivo' }, { status: 400 })
@@ -22,22 +21,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Configuración de IA faltante' }, { status: 500 })
     }
 
-    // Prepare Groq request
-    const groqFormData = new FormData()
-    
-    const filename = file.name || 'audio.m4a'
-    const audioContent = new File([file], filename, { type: file.type || 'audio/m4a' })
-    
-    groqFormData.append('file', audioContent)
-    groqFormData.append('model', model)
-    groqFormData.append('language', 'es') // Spanish as default
+    // Append required fields to the existing form data to preserve file integrity
+    formData.append('model', 'whisper-large-v3-turbo') // Using the faster v3-turbo model for Whisper
+    formData.append('language', 'es')
 
     const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${groqApiKey}`
       },
-      body: groqFormData
+      body: formData
     })
 
     if (!response.ok) {
