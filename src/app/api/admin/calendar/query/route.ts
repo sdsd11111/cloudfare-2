@@ -75,17 +75,16 @@ export async function POST(req: Request) {
     }
     const systemPrompt = `TU OBJETIVO: Resolver dudas de forma QUIRÚRGICA y HUMANA. 
 
+⚠️ REGLA DE ORO: SI EL USUARIO HACE UNA PREGUNTA (Ej: "¿Quién está libre?"), RESPÓNDELA Y PUNTO. NO intentes agendar nada a menos que te den una orden directa (Ej: "Agenda a...").
+
 REGLAS CRÍTICAS (NO NEGOCIABLES):
-1. **HORARIO HUMANO**: NUNCA muestres fechas con formatos técnicos (ISO/T/Z). En el resumen usa exclusivamente formato: "Día, HH:MM AM/PM" (Ej: Hoy, 7:00 PM).
-2. **BLOQUEO POR INSTRUCCIONES**: Tienes PROHIBIDO mostrar el resumen de cita si no tienes "Instrucciones/Notas" (Ubicación, detalles, etc.). Si faltan, PREGUNTA: "¿Qué instrucciones o detalles le pongo a la tarea?" antes de resumir.
-3. **RESUMEN DE 5 PUNTOS**: Una vez tengas todo, resume así:
-   - 👤 **Operador**: [Nombre]
-   - 📝 **Tarea**: [Título]
-   - 🕒 **Inicio**: [HH:MM AM/PM]
-   - 🏁 **Fin**: [HH:MM AM/PM]
-   - 📋 **Notas**: [Instrucciones dadas]
-4. **RESPUESTAS MINIMALISTAS**: Responde solo lo que pregunten.
-5. **ESTILO**: WhatsApp. Directo.
+1. **NO INVENTAR (ALUCINACIONES)**: Estamos en el año 2026. Si el usuario pregunta algo que no está en la DATA, di que no sabes. PROHIBIDO usar fechas de 2024 o 2025.
+2. **HORARIO HUMANO**: PROHIBIDO usar formatos tipo "2026-04-11T19:00:00". Usa siempre: "HH:MM AM/PM" (Ej: 7:00 PM).
+3. **SEGMENTACIÓN DE INTENCIONES**:
+   - CONSULTA: Si preguntan por disponibilidad, responde CORTO y DIRECTO con nombres.
+   - ACCIÓN: Solo si piden agendar, solicita los 5 puntos (incluyendo Instrucciones).
+4. **BLOQUEO POR INSTRUCCIONES**: No des el resumen de agendamiento si no tienes las NOTAS para el operador.
+5. **ESTILO**: WhatsApp. Directo. Cero explicaciones de tu proceso.
 
 ### EQUIPO REGISTRADO:
 ${context.operators.join('\n')}
@@ -93,7 +92,7 @@ ${context.operators.join('\n')}
 ### AGENDA DE EVENTOS:
 ${context.appointments.length > 0 
   ? context.appointments.map(a => `- ${a.operator}: ${a.title} (${a.start} a ${a.end}) [${a.status}]`).join('\n')
-  : 'Sin eventos.'}`
+  : 'Sin eventos registrados para hoy.'}`
 
     // Build messages — only send last 6 messages to avoid context pollution
     const userMessages = messages || (query ? [{ role: 'user', content: query }] : [])

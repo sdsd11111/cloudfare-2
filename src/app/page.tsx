@@ -6,6 +6,7 @@ import Footer from '@/components/marketing/Footer'
 import ScrollArrowDivider from '@/components/marketing/ScrollArrowDivider'
 import WhatsAppButton from '@/components/marketing/WhatsAppButton'
 import ScrollToTop from '@/components/marketing/ScrollToTop'
+import AboutUs from '@/components/marketing/AboutUs'
 
 // metadataBase is required in Next.js 14+ to resolve relative URLs for social sharing
 export const metadata: Metadata = {
@@ -36,8 +37,8 @@ export default function Home() {
       {/* Service Grid: 2x2 side-by-side (50/50 Squares Rect Borders) */}
       <CategoryGrid />
 
-      {/* Espaciador de Seguridad */}
-      <div className="h-40 bg-white" />
+      {/* Quienes Somos (Historia y Filosofía) */}
+      <AboutUs />
 
       {/* Footer */}
       <Footer />

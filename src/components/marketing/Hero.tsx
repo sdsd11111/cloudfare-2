@@ -65,7 +65,7 @@ export default function Hero() {
       <div className="absolute inset-y-0 left-4 md:left-10 flex items-center z-20">
         <button 
           onClick={prevSlide}
-          className="w-12 h-12 rounded-full bg-black/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-black/60 transition-all"
+          className="w-12 h-12 rounded-none bg-black/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-black/60 transition-all border border-white/10"
         >
           <ChevronLeft size={32} />
         </button>
@@ -73,7 +73,7 @@ export default function Hero() {
       <div className="absolute inset-y-0 right-4 md:right-10 flex items-center z-20">
         <button 
           onClick={nextSlide}
-          className="w-12 h-12 rounded-full bg-black/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-black/60 transition-all"
+          className="w-12 h-12 rounded-none bg-black/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-black/60 transition-all border border-white/10"
         >
           <ChevronRight size={32} />
         </button>
