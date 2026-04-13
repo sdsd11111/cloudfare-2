@@ -145,24 +145,81 @@ export default function ProjectExecutionClient({
 
   const pendingItems = useLiveQuery(() => db.outbox.where('projectId').equals(project.id).toArray(), [project.id]) || []
 
-  const pendingExpenses = useMemo(() => {
-    return pendingItems
-      .filter((item: any) => item.type === 'EXPENSE')
-      .map((item: any) => ({
-        id: `pending-exp-${item.id}`,
-        amount: item.payload.amount,
-        description: item.payload.description,
-        date: new Date(item.timestamp).toISOString(),
-        isPending: true
-      }))
-  }, [pendingItems])
+  const [localExpenses, setLocalExpenses] = useState<any[]>(expenses || [])
+  const expensesInitialized = useRef(false)
 
+  // Polling for expenses to avoid "reverting to 0" on mobile state resets
+  useEffect(() => {
+    if (!mounted) return
+    
+    const fetchExpenses = async () => {
+      if (!navigator.onLine) return
+      try {
+        const resp = await fetch(`/api/operator/projects/${project.id}/expenses?_t=${Date.now()}`, {
+          cache: 'no-store'
+        })
+        if (resp.ok) {
+          const fresh = await resp.json()
+          if (Array.isArray(fresh) && fresh.length > 0) {
+            setLocalExpenses(fresh)
+          }
+        }
+      } catch (e) { /* silent fail */ }
+    }
+
+    const expInterval = setInterval(fetchExpenses, 20000)
+    return () => clearInterval(expInterval)
+  }, [mounted, project.id])
+
+  // Aggregate ALL expenses (prop, local state, Outbox, and Chat messages)
   const allExpenses = useMemo(() => {
-    return [...expenses, ...pendingExpenses].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-  }, [expenses, pendingExpenses])
+    // 1. Start with localExpenses (which includes server data)
+    let list = [...localExpenses]
 
+    // 2. Add pending expenses from Outbox
+    pendingItems
+      .filter((item: any) => item.type === 'EXPENSE')
+      .forEach((item: any) => {
+        list.push({
+          id: `pending-${item.id}`,
+          description: item.payload.description,
+          amount: Number(item.payload.amount),
+          date: new Date(item.timestamp).toISOString(),
+          isNote: item.payload.isNote,
+          isPending: true,
+          userName: 'Yo (Pendiente)'
+        })
+      })
 
-  // Calculate my total real expenses (not notes)
+    // 3. Add EXPENSE_LOG messages from liveChat that didn't make it to expenses yet
+    // To avoid duplicates, we only add if the ID or description doesn't exist in localExpenses
+    liveChat
+      .filter((msg: any) => msg.type === 'EXPENSE_LOG' || msg.type === 'EXPENSE')
+      .forEach((msg: any) => {
+        const amount = msg.extraData?.amount ?? msg.amount
+        const isNote = msg.extraData?.isNote ?? msg.isNote
+        const msgId = msg.id
+        
+        // Basic check to see if this expense is already in the main list
+        // Chat expenses usually have "Gasto registrado desde chat" or similar as description in the DB
+        const exists = list.some(le => le.chatMessageId === msgId || (le.description === msg.content && Math.abs(le.amount - amount) < 0.01))
+        
+        if (!exists) {
+          list.push({
+            id: `chat-exp-${msgId}`,
+            chatMessageId: msgId,
+            description: msg.content,
+            amount: Number(amount),
+            date: msg.createdAt,
+            isNote: !!isNote,
+            userName: msg.userName || 'Usuario'
+          })
+        }
+      })
+
+    return list.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  }, [localExpenses, pendingItems, liveChat])
+
   const myTotalSpent = useMemo(() => {
     return (allExpenses || [])
       .filter((e: any) => !e.isNote)

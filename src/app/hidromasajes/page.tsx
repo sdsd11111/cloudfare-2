@@ -74,13 +74,25 @@ export default function HidromasajesPage() {
           transform: translateY(-2px);
         }
         
-        /* Mobile Slider Overrides */
+        /* Full Responsiveness Overrides */
         @media (max-width: 1024px) {
+          .aquatech-full-section {
+            flex-direction: column !important;
+          }
           .aquatech-work-left, .aquatech-work-right {
-             flex: 1 1 100% !important;
+             flex: 0 0 100% !important;
+             width: 100% !important;
              min-width: 100% !important;
              padding: 60px 20px !important;
              border: none !important;
+          }
+          .cta-faq-section {
+            flex-direction: column !important;
+          }
+          .cta-side, .faq-side {
+            flex: 0 0 100% !important;
+            width: 100% !important;
+            padding: 60px 24px !important; /* Reduced padding for mobile */
           }
           .work-items-container {
              flex-direction: row !important;
@@ -158,12 +170,12 @@ export default function HidromasajesPage() {
         />
         <div className="absolute inset-0 bg-black/40 z-0"></div>
         
-        <div className="relative z-10 text-center px-10 w-full max-w-[1000px] mx-auto flex flex-col items-center">
+        <div className="relative z-10 text-center px-5 sm:px-10 w-full max-w-[1000px] mx-auto flex flex-col items-center">
           <motion.h1 
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-            className="text-6xl md:text-[110px] font-black text-white mb-10 tracking-tighter leading-[0.8] text-center"
+            className="text-5xl sm:text-6xl md:text-[110px] font-black text-white mb-10 tracking-tighter leading-[0.9] md:leading-[0.8] text-center"
           >
             Hidromasaje.<br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#004A87] to-[#0070C0]">Excelencia Pura.</span>
@@ -225,7 +237,7 @@ export default function HidromasajesPage() {
           flexDirection: 'column', 
           justifyContent: 'center',
           position: 'relative',
-          minWidth: '500px',
+          minWidth: 0,
           borderRight: '1px solid #f3f4f6'
         }}>
           {/* Blueprint Grid Background - Lighter for White BG */}
@@ -300,7 +312,7 @@ export default function HidromasajesPage() {
           flexDirection: 'column', 
           justifyContent: 'center',
           borderLeft: '1px solid #004A87',
-          minWidth: '450px'
+          minWidth: 0
         }}>
            <div className="quote-form-card" style={{ width: '100%', backgroundColor: 'white', padding: '50px', boxShadow: '50px 50px 0px rgba(0,0,0,0.2)' }}>
               <DynamicQuoteForm categoryName="Hidromasajes" />
@@ -317,10 +329,10 @@ export default function HidromasajesPage() {
       <section style={{ backgroundColor: '#ffffff', borderTop: '1px solid #f3f4f6', padding: '0', width: '100%', overflow: 'hidden' }}>
         <div style={{ width: '100%', margin: '0' }}>
           
-          <div style={{ display: 'flex', flexWrap: 'wrap', width: '100%', backgroundColor: '#050505' }}>
+          <div className="cta-faq-section" style={{ display: 'flex', flexWrap: 'wrap', width: '100%', backgroundColor: '#050505' }}>
             
             {/* Lado Izquierdo: CTA Estructural */}
-            <div style={{ 
+            <div className="cta-side" style={{ 
               backgroundColor: '#050505', 
               backgroundImage: 'url("https://cesarweb.b-cdn.net/Hidromasaje-Aquatech/hero-hidromasaje.webp")',
               backgroundSize: 'cover',
@@ -363,10 +375,10 @@ export default function HidromasajesPage() {
             </div>
 
             {/* Lado Derecho: Preguntas Frecuentes */}
-            <div style={{ backgroundColor: '#F9FAFB', padding: '80px 60px', flex: '1 1 50%', maxWidth: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', boxSizing: 'border-box' }}>
+            <div className="faq-side" style={{ backgroundColor: '#F9FAFB', padding: '80px 60px', flex: '1 1 50%', maxWidth: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', boxSizing: 'border-box' }}>
                
                <div style={{ marginBottom: '50px' }}>
-                 <h3 style={{ fontSize: '32px', fontWeight: 900, textTransform: 'uppercase', color: 'black', lineHeight: '1.2', letterSpacing: '0' }}>Preguntas<br/>Frecuentes</h3>
+                 <h3 className="text-3xl md:text-[32px]" style={{ fontWeight: 900, textTransform: 'uppercase', color: 'black', lineHeight: '1.2', letterSpacing: '0' }}>Preguntas<br/>Frecuentes</h3>
                  <div style={{ width: '60px', height: '6px', backgroundColor: '#004A87', marginTop: '24px' }}></div>
                </div>
                
@@ -377,8 +389,8 @@ export default function HidromasajesPage() {
                      style={{ backgroundColor: 'white', border: '1px solid #e5e7eb', cursor: 'pointer' }}
                      onClick={() => setActiveFaq(activeFaq === idx ? null : idx)}
                    >
-                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '24px', gap: '24px' }}>
-                       <h4 style={{ fontSize: '11px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', lineHeight: '1.6', color: activeFaq === idx ? '#004A87' : '#111827', margin: 0 }}>
+                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px', gap: '15px' }}>
+                       <h4 style={{ fontSize: '11px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', lineHeight: '1.6', color: activeFaq === idx ? '#004A87' : '#111827', margin: 0, flex: 1 }}>
                          {faq.q}
                        </h4>
                        <div style={{ flexShrink: 0 }}>

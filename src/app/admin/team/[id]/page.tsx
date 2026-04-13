@@ -133,8 +133,6 @@ export default function TeamMemberPage() {
     }
   }
 
-  if (!isClient) return null
-  
   const availableMonths = useMemo(() => {
     if (!activityData?.timeline) return []
     const months = new Set<string>()
@@ -199,6 +197,13 @@ export default function TeamMemberPage() {
         return new Date(b[1][0].timestamp).getTime() - new Date(a[1][0].timestamp).getTime()
     })
   }, [activityData, activeTab, monthFilter, projectFilter])
+
+  // UI States branching
+  if (!isClient) return null
+  if (loading) return <div style={{ padding: '40px', textAlign: 'center' }}>Cargando perfil...</div>
+  if (error) return <div style={{ padding: '40px', color: 'red' }}>{error}</div>
+  if (!member) return <div style={{ padding: '40px' }}>Usuario no encontrado</div>
+
 
   const handlePasswordChange = async () => {
     if (!newPassword || newPassword.length < 4) {

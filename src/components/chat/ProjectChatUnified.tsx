@@ -425,31 +425,59 @@ export default function ProjectChatUnified({
                     </div>
                   )}
 
-                 {(msg.type === 'EXPENSE_LOG' || msg.type === 'EXPENSE') && (
-                   <div className="expense-box" style={{ 
-                     backgroundColor: (msg.extraData?.isNote || msg.isNote) ? 'rgba(59, 130, 246, 0.1)' : 'rgba(16, 185, 129, 0.1)',
-                     borderLeft: `4px solid ${(msg.extraData?.isNote || msg.isNote) ? '#3b82f6' : '#10b981'}`,
-                     padding: '8px',
-                     borderRadius: '4px',
-                     marginTop: '4px'
-                   }}>
-                     <div style={{ fontSize: '0.65rem', fontWeight: 'bold', color: (msg.extraData?.isNote || msg.isNote) ? '#3b82f6' : '#10b981' }}>
-                       {(msg.extraData?.isNote || msg.isNote) ? '🏷️ NOTA DE GASTO' : '💰 GASTO REAL'}
-                     </div>
-                      <div style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
+                  {(msg.type === 'EXPENSE_LOG' || msg.type === 'EXPENSE') && (
+                    <div className="expense-box" style={{ 
+                      backgroundColor: (msg.extraData?.isNote || msg.isNote) ? 'rgba(59, 130, 246, 0.12)' : 'rgba(16, 185, 129, 0.12)',
+                      borderLeft: `4px solid ${(msg.extraData?.isNote || msg.isNote) ? '#3b82f6' : '#10b981'}`,
+                      padding: '12px',
+                      borderRadius: '8px',
+                      marginTop: '8px',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <div style={{ fontSize: '0.7rem', fontWeight: '800', color: (msg.extraData?.isNote || msg.isNote) ? '#3b82f6' : '#10b981', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          {(msg.extraData?.isNote || msg.isNote) ? '🏷️ Nota de Gasto' : '💰 Gasto Real'}
+                        </div>
+                        {msg.userName && <div style={{ fontSize: '0.65rem', opacity: 0.6 }}>{msg.userName}</div>}
+                      </div>
+
+                      <div style={{ fontSize: '1.4rem', fontWeight: '900', color: '#e9edef', marginBottom: '4px' }}>
                         $ {(() => {
                           const val = msg.extraData?.amount ?? msg.amount;
                           return val !== undefined && val !== null ? Number(val).toFixed(2) : '0.00';
                         })()}
                       </div>
-                     <div style={{ fontSize: '0.85rem', opacity: 0.9 }}>{msg.content}</div>
-                     {mediaObj && (
-                        <div style={{ marginTop: '5px', borderRadius: '4px', overflow: 'hidden', cursor: 'pointer' }} onClick={() => window.open(mediaObj.url, '_blank')}>
-                           <img src={mediaObj.url} style={{ width: '100%', maxHeight: '60px', objectFit: 'cover' }} alt="Recibo" />
+
+                      <div style={{ fontSize: '0.9rem', lineHeight: '1.4', opacity: 0.95, color: '#e9edef', marginBottom: '8px' }}>
+                        {msg.content}
+                      </div>
+
+                      {mediaObj && (
+                        <div 
+                          style={{ 
+                            marginTop: '10px', 
+                            borderRadius: '8px', 
+                            overflow: 'hidden', 
+                            cursor: 'pointer',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            backgroundColor: 'rgba(0,0,0,0.2)'
+                          }} 
+                          onClick={() => window.open(mediaObj.url, '_blank')}
+                        >
+                          <img 
+                            src={mediaObj.url} 
+                            style={{ 
+                              width: '100%', 
+                              maxHeight: '280px', 
+                              objectFit: 'contain',
+                              display: 'block'
+                            }} 
+                            alt="Recibo" 
+                          />
                         </div>
-                     )}
-                   </div>
-                 )}
+                      )}
+                    </div>
+                  )}
                  <div className="message-footer">
                    <span className="time">{formatTimeEcuador(msg.createdAt)}</span>
                    {isMe && <span className="check">✓✓</span>}
@@ -698,58 +726,144 @@ export default function ProjectChatUnified({
               {expenseModal.isNote ? '🏷️ Registrar Nota de Gasto' : '💰 Registrar Gasto Real'}
             </h3>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div 
+                  onClick={() => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'image/*';
+                    input.capture = 'environment';
+                    input.onchange = (e: any) => {
+                      const file = e.target.files?.[0];
+                      if (file) setExpenseForm({ ...expenseForm, file });
+                    };
+                    input.click();
+                  }}
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '2px dashed rgba(255,255,255,0.2)',
+                    borderRadius: '12px',
+                    padding: '20px 10px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '8px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <Camera size={28} />
+                  <span style={{ fontSize: '0.75rem', fontWeight: '600' }}>Cámara</span>
+                </div>
+                
+                <div 
+                  onClick={() => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'image/*';
+                    input.onchange = (e: any) => {
+                      const file = e.target.files?.[0];
+                      if (file) setExpenseForm({ ...expenseForm, file });
+                    };
+                    input.click();
+                  }}
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '2px dashed rgba(255,255,255,0.2)',
+                    borderRadius: '12px',
+                    padding: '20px 10px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '8px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  <span style={{ fontSize: '0.75rem', fontWeight: '600' }}>Galería</span>
+                </div>
+              </div>
+
+              {expenseForm.file && (
+                <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--primary)' }}>
+                   <img 
+                    src={URL.createObjectURL(expenseForm.file)} 
+                    style={{ width: '100%', height: '140px', objectFit: 'cover' }} 
+                    alt="Preview"
+                   />
+                   <button 
+                    onClick={() => setExpenseForm({ ...expenseForm, file: null })}
+                    style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.6)', border: 'none', color: 'white', borderRadius: '50%', width: '24px', height: '24px', cursor: 'pointer' }}
+                   >✕</button>
+                   <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(transparent, rgba(0,0,0,0.8))', padding: '8px', fontSize: '0.7rem' }}>
+                      {expenseForm.file.name}
+                   </div>
+                </div>
+              )}
+
               <div>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Monto ($) *</label>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.85rem', fontWeight: '600', color: 'rgba(255,255,255,0.7)' }}>Monto del gasto ($) *</label>
                 <input 
                   type="number" 
                   step="0.01" 
+                  inputMode="decimal"
                   value={expenseForm.amount}
                   onChange={(e) => setExpenseForm({ ...expenseForm, amount: e.target.value })}
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-deep)', color: 'white' }}
-                  placeholder="Ej. 15.50"
+                  style={{ 
+                    width: '100%', 
+                    padding: '14px', 
+                    borderRadius: '12px', 
+                    border: '1px solid rgba(255,255,255,0.1)', 
+                    background: 'rgba(255,255,255,0.05)', 
+                    color: 'white',
+                    fontSize: '1.1rem',
+                    fontWeight: '700'
+                  }}
+                  placeholder="0.00"
                   required
+                  autoFocus
                 />
               </div>
               
               <div>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Descripción *</label>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.85rem', fontWeight: '600', color: 'rgba(255,255,255,0.7)' }}>Descripción / Concepto *</label>
                 <textarea 
                   value={expenseForm.description}
                   onChange={(e) => setExpenseForm({ ...expenseForm, description: e.target.value })}
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-deep)', color: 'white', minHeight: '80px', resize: 'vertical' }}
-                  placeholder="Detalle del gasto..."
-                  required
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Factura o Recibo (Opcional)</label>
-                <input 
-                  type="file" 
-                  accept="image/*,.pdf"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) setExpenseForm({ ...expenseForm, file });
+                  style={{ 
+                    width: '100%', 
+                    padding: '12px', 
+                    borderRadius: '12px', 
+                    border: '1px solid rgba(255,255,255,0.1)', 
+                    background: 'rgba(255,255,255,0.05)', 
+                    color: 'white', 
+                    minHeight: '100px', 
+                    fontSize: '0.95rem',
+                    resize: 'none'
                   }}
-                  style={{ width: '100%', color: 'var(--text-muted)' }}
+                  placeholder="¿En qué se gastó este dinero?"
+                  required
                 />
               </div>
               
               <button 
                 onClick={submitExpenseForm}
+                disabled={!expenseForm.amount || !expenseForm.description}
                 style={{
                   background: expenseModal.isNote ? '#3b82f6' : '#10b981',
                   color: 'white',
                   border: 'none',
-                  padding: '12px',
-                  borderRadius: '8px',
-                  fontWeight: 'bold',
+                  padding: '16px',
+                  borderRadius: '12px',
+                  fontWeight: '800',
+                  fontSize: '1rem',
                   cursor: 'pointer',
-                  marginTop: '10px'
+                  opacity: (!expenseForm.amount || !expenseForm.description) ? 0.5 : 1,
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
                 }}
               >
-                Guardar
+                Registrar {expenseModal.isNote ? 'Nota' : 'Gasto'}
               </button>
             </div>
           </div>

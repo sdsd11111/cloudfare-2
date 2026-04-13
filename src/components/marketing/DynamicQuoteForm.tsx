@@ -110,29 +110,29 @@ export default function DynamicQuoteForm({
         return;
     }
 
-    let message = `*SOLICITUD DE COTIZACIÓN TÉCNICA*\n`
+    let message = `🌊 *SOLICITUD DE COTIZACIÓN TÉCNICA* 🌊\n`
     message += `*Categoría:* ${categoryName}\n`
-    message += `------------------------------------------\n\n`
-    message += `👤 *Cliente:* ${formData.name}\n`
-    message += `📍 *Ubicación:* ${formData.location}\n`
+    message += `───────────────────────────\n\n`
+    message += `💎 *CLIENTE:* ${formData.name}\n`
+    message += `📍 *UBICACIÓN:* ${formData.location}\n`
     
     if (showDimensions && formData.dimensions) {
-      message += `📏 *Medidas:* ${formData.dimensions}\n`
+      message += `📐 *MEDIDAS:* ${formData.dimensions}\n`
     }
     
     if (formData.details) {
-      message += `📝 *Detalles:* ${formData.details}\n`
+      message += `📝 *DETALLES:* ${formData.details}\n`
     }
     
     if (uploadedUrls.length > 0) {
-      message += `\n🖼️ *REFERENCIAS (${uploadedUrls.length}):*\n`
+      message += `\n🖼️ *REFERENCIAS VISUALES (${uploadedUrls.length}):*\n`
       uploadedUrls.forEach((url, i) => {
-        message += `${i+1}. ${url}\n`
+        message += `🔗 ${i+1}. ${url}\n`
       })
     }
     
-    message += `\n------------------------------------------\n`
-    message += `*HIDROMASAJES AQUATECH - INGENIERÍA PURA*`
+    message += `\n───────────────────────────\n`
+    message += `🏗️ *AQUATECH - INGENIERÍA PURA*`
 
     const wpUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`
     window.open(wpUrl, '_blank')
@@ -146,23 +146,24 @@ export default function DynamicQuoteForm({
           border: 1px solid #E5E7EB;
           background-color: white;
           color: black;
-          font-size: 11px;
+          font-size: 13px; /* Slightly larger for mobile readability */
           text-transform: uppercase;
           letter-spacing: 0.1em;
-          padding: 16px 20px;
+          padding: 18px 20px; /* Increased padding for better touch height */
           outline: none;
           transition: all 0.3s ease;
           width: 100%;
+          box-sizing: border-box;
         }
         .square-input:focus { border-color: #004A87; }
-        .square-input::placeholder { color: #9CA3AF; }
+        .square-input::placeholder { color: #9CA3AF; font-size: 10px; }
         .btn-aquatech {
           border-radius: 0px !important;
           text-transform: uppercase;
           letter-spacing: 0.2em;
           font-weight: 900;
-          font-size: 11px;
-          padding: 20px;
+          font-size: 12px;
+          padding: 22px;
           width: 100%;
           transition: all 0.3s ease;
           display: flex;
@@ -171,14 +172,24 @@ export default function DynamicQuoteForm({
           gap: 10px;
           font-family: var(--font-brand) !important;
         }
+        h3 { font-size: 1.5rem; }
+        @media (min-width: 768px) {
+           h3 { font-size: 1.875rem; }
+        }
         h3, span { font-family: var(--font-brand); }
         label, input, textarea, p { font-family: var(--font-body); }
         
         .preview-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-          gap: 10px;
+          grid-template-columns: repeat(3, 1fr); /* 3 items per row on mobile */
+          gap: 8px;
           width: 100%;
+        }
+        @media (min-width: 640px) {
+          .preview-grid {
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 12px;
+          }
         }
         .prefix-thumb {
           aspect-ratio: 1;
@@ -193,12 +204,12 @@ export default function DynamicQuoteForm({
           right: 0;
           background: #004A87;
           color: white;
-          width: 20px;
-          height: 20px;
+          width: 24px; /* Larger touch target */
+          height: 24px;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 12px;
+          font-size: 16px;
           cursor: pointer;
           z-index: 30;
         }
