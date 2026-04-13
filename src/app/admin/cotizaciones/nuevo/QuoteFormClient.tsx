@@ -4,6 +4,8 @@ import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import MediaCapture from '@/components/MediaCapture'
 import BudgetBuilder, { BudgetItem } from '@/components/BudgetBuilder'
+import { generateProfessionalPDF } from '@/lib/pdf-generator'
+import { useSession } from 'next-auth/react'
 
 interface QuoteFormProps {
   clients: any[]
@@ -17,6 +19,7 @@ import { useLocalStorage } from '@/hooks/useLocalStorage'
 
 export default function QuoteFormClient({ clients, materials, projects = [], prefetchedProject, initialQuote }: QuoteFormProps) {
   const router = useRouter()
+  const { data: session } = useSession()
   const [loading, setLoading] = useState(false)
   const [clientData, setClientData] = useLocalStorage('quote_draft_client', {
     name: initialQuote?.clientName || '',
@@ -120,6 +123,7 @@ export default function QuoteFormClient({ clients, materials, projects = [], pre
   
   // Project selection state
   const [selectedProjectId, setSelectedProjectId] = useState<number | string>(initialQuote?.projectId || prefetchedProject?.id || '')
+  const [bitacoraMessage, setBitacoraMessage] = useState('')
   const [projectSearch, setProjectSearch] = useState('')
   const [showProjectDropdown, setShowProjectDropdown] = useState(false)
   const projectDropdownRef = useRef<HTMLDivElement>(null)
@@ -229,6 +233,47 @@ export default function QuoteFormClient({ clients, materials, projects = [], pre
 
     setLoading(true)
 
+    // Prepare PDF for Bitácora if project selected
+    let bitacoraData = {}
+    if (selectedProjectId && navigator.onLine) {
+      try {
+        const clientInfo = {
+          name: payload.clientName,
+          ruc: payload.clientRuc,
+          address: payload.clientAddress,
+          phone: payload.clientPhone,
+          date: new Date()
+        }
+        
+        const pdfTotals = {
+          subtotal: Number(calculations.totalBudget || 0),
+          subtotal0: Number(calculations.subtotal0 || 0),
+          subtotal15: Number(calculations.subtotal15 || 0),
+          discountTotal: Number(calculations.discountTotal || 0),
+          ivaAmount: Number(calculations.ivaAmount || 0),
+          totalAmount: Number(calculations.grandTotal || 0)
+        }
+
+        const doc = generateProfessionalPDF(clientInfo, payload.items, pdfTotals, {
+          docType: 'COTIZACIÓN',
+          docId: initialQuote?.id || 'TEMP',
+          notes: payload.notes,
+          sellerName: session?.user?.name || 'Aquatech',
+          action: 'instance'
+        })
+        
+        bitacoraData = {
+          bitacoraMessage,
+          pdfBase64: (doc as any).output('datauristring').split(',')[1],
+          filename: `Cotizacion_Nueva_${payload.clientName.replace(/\s+/g, '_')}.pdf`
+        }
+      } catch (e) {
+        console.error("Error generating PDF for bitácora:", e)
+      }
+    }
+
+    const finalPayload = { ...payload, ...bitacoraData }
+
     // Offline interceptor
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
        try {
@@ -269,7 +314,7 @@ export default function QuoteFormClient({ clients, materials, projects = [], pre
       const res = await fetch(url, {
         method: method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(finalPayload)
       })
 
       if (res.ok) {
@@ -304,7 +349,6 @@ export default function QuoteFormClient({ clients, materials, projects = [], pre
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '15px' }}>
               Selecciona un proyecto solo si deseas enviar una copia informativa de esta cotización a su bitácora de mensajes. No se creará un vínculo permanente.
             </p>
-           
            <div style={{ position: 'relative' }} ref={projectDropdownRef}>
               <div style={{ position: 'relative' }}>
                 <input 
@@ -364,6 +408,21 @@ export default function QuoteFormClient({ clients, materials, projects = [], pre
                 </div>
               )}
            </div>
+
+           {selectedProjectId && (
+             <div style={{ marginTop: '15px' }}>
+               <label style={{ fontSize: '0.8rem', fontWeight: '600', display: 'block', marginBottom: '8px' }}>
+                 Mensaje personalizado para el chat:
+               </label>
+               <textarea 
+                 className="form-input" 
+                 style={{ height: '70px', fontSize: '0.85rem' }}
+                 placeholder="Escribe un mensaje para el equipo (ej: Adjunto cotización de materiales fase 1...)"
+                 value={bitacoraMessage}
+                 onChange={e => setBitacoraMessage(e.target.value)}
+               />
+             </div>
+           )}
         </div>
 
         {/* Client Box */}

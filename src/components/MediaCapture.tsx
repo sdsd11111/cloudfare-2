@@ -73,30 +73,43 @@ export default function MediaCapture({
     return '' // Let browser choose default
   }
 
-  const startRecording = async () => {
+  const initCamera = async () => {
     try {
-      // Clear previous stream
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop())
       }
-
       const newStream = await navigator.mediaDevices.getUserMedia({
         audio: true,
         video: (mode === 'video' || mode === 'photo') ? { facingMode } : false
       })
-
       streamRef.current = newStream
-
-      // Attach live preview for video
-      if (mode === 'video' && videoRef.current) {
+      if (videoRef.current) {
         videoRef.current.srcObject = newStream
-        videoRef.current.play().catch(() => {}) // Ignore autoplay errors
+        videoRef.current.play().catch(() => {})
       }
+    } catch (err) {
+      console.error('Error starting camera stream:', err)
+    }
+  }
+
+  // Auto-init camera for video/photo mode
+  useEffect(() => {
+    if ((mode === 'video' || mode === 'photo') && !previewUrl) {
+      initCamera()
+    }
+  }, [mode, facingMode, previewUrl])
+
+  const startRecording = async () => {
+    try {
+      if (!streamRef.current) {
+        await initCamera()
+      }
+      if (!streamRef.current) return
 
       // --- Main recorder (video+audio or audio-only) ---
       const supportedMime = getSupportedMimeType(mode)
       const options: MediaRecorderOptions = supportedMime ? { mimeType: supportedMime } : {}
-      const recorder = new MediaRecorder(newStream, options)
+      const recorder = new MediaRecorder(streamRef.current, options)
       const actualMime = recorder.mimeType || (mode === 'video' ? 'video/webm' : 'audio/webm')
       
       chunksRef.current = []
@@ -107,8 +120,7 @@ export default function MediaCapture({
       // --- Separate AUDIO-ONLY recorder for video transcription ---
       let audioRecorder: MediaRecorder | null = null
       if (mode === 'video') {
-        // Create an audio-only stream from the same microphone tracks
-        const audioTracks = newStream.getAudioTracks()
+        const audioTracks = streamRef.current.getAudioTracks()
         if (audioTracks.length > 0) {
           const audioOnlyStream = new MediaStream(audioTracks)
           const audioMime = getSupportedMimeType('audio')
@@ -129,10 +141,8 @@ export default function MediaCapture({
         setRecordedDuration(timer)
 
         if (skipTranscription) {
-          // Immediately send to parent without transcribing
           onCapture(videoBlob, mode, '')
         } else {
-          // For transcription: use audio-only blob if available, otherwise fall back to full blob
           let transcriptionBlob: Blob
           if (mode === 'video' && audioChunksRef.current.length > 0) {
             const audioMime = audioRecorderRef.current?.mimeType || 'audio/webm'
@@ -140,17 +150,10 @@ export default function MediaCapture({
           } else {
             transcriptionBlob = videoBlob
           }
-
-          // Transcribe the AUDIO blob, but pass the VIDEO blob to onCapture for gallery
           await handleTranscription(transcriptionBlob, videoBlob)
         }
-        
-        // Clean up stream
-        newStream.getTracks().forEach(track => track.stop())
-        streamRef.current = null
       }
 
-      // Start all recorders
       recorder.start()
       if (audioRecorder) audioRecorder.start()
       mediaRecorderRef.current = recorder
@@ -158,13 +161,12 @@ export default function MediaCapture({
       startTimer()
     } catch (err) {
       console.error('Error starting recording:', err)
-      alert('Error: No se pudo acceder a la cámara o micrófono. Verifica los permisos del navegador.')
+      alert('Error al grabar. Verifica los permisos.')
     }
   }
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
-      // Stop audio recorder first (if exists)
       if (audioRecorderRef.current && audioRecorderRef.current.state !== 'inactive') {
         audioRecorderRef.current.stop()
       }
@@ -172,11 +174,8 @@ export default function MediaCapture({
       setIsRecording(false)
       setRecordedDuration(timer)
       stopTimer()
-
-      // Stop live preview
-      if (videoRef.current) {
-        videoRef.current.srcObject = null
-      }
+      // Note: We don't stop the stream yet if we want to keep the preview, 
+      // but here we are moving to result view, so let it be.
     }
   }
 
@@ -331,7 +330,7 @@ export default function MediaCapture({
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '15px' }}>
         {mode === 'video' && (
           <div style={{ 
-            display: (isRecording || previewUrl) ? 'block' : 'none', 
+            display: (streamRef.current || isRecording || previewUrl) ? 'block' : 'none', 
             width: '100%', 
             maxWidth: '320px', 
             borderRadius: '12px', 

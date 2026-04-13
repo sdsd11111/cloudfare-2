@@ -139,7 +139,7 @@ export interface PDFConfig {
   docType: 'COTIZACIÓN' | 'PRESUPUESTO';
   docId: string | number;
   notes?: string;
-  action?: 'save' | 'preview';
+  action?: 'save' | 'preview' | 'blob' | 'instance';
   sellerName?: string;
 }
 
@@ -375,8 +375,11 @@ export function generateProfessionalPDF(
 
   if (config.action === 'preview') {
     const blobUrl = doc.output('bloburl');
-    // Returning the blobUrl allows the UI to show it in an iframe.
     return blobUrl;
+  } else if (config.action === 'blob') {
+    return doc.output('blob');
+  } else if (config.action === 'instance') {
+    return doc;
   } else {
     doc.save(fileName);
   }

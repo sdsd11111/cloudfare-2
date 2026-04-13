@@ -11,6 +11,7 @@ export default function QuoteDetailClient({ quote, projects = [] }: any) {
   const { data: session } = useSession()
   const router = useRouter()
   const [sending, setSending] = useState(false)
+  const [customMessage, setCustomMessage] = useState('')
   
   // Project Search State
   const [projectSearch, setProjectSearch] = useState('')
@@ -48,20 +49,67 @@ export default function QuoteDetailClient({ quote, projects = [] }: any) {
     
     setSending(true)
     try {
+      // 1. Generate PDF data
+      const clientInfo = {
+        name: quote.clientName || quote.client?.name || '',
+        ruc: quote.clientRuc || quote.client?.ruc,
+        address: quote.clientAddress || quote.client?.address,
+        phone: quote.clientPhone || quote.client?.phone,
+        date: new Date(quote.createdAt)
+      }
+
+      const items = quote.items.map((item: any) => ({
+        quantity: item.quantity === 'GLOBAL' ? 'GLOBAL' : Number(item.quantity),
+        code: item.material?.code || item.code || '',
+        description: item.description,
+        unitPrice: Number(item.unitPrice),
+        discountPct: Number(item.discountPct || 0),
+        total: Number(item.total)
+      }))
+
+      const totals = {
+        subtotal: Number(quote.subtotal || 0),
+        subtotal0: Number(quote.subtotal0 || 0),
+        subtotal15: Number(quote.subtotal15 || 0),
+        discountTotal: Number(quote.discountTotal || 0),
+        ivaAmount: Number(quote.ivaAmount || 0),
+        totalAmount: Number(quote.totalAmount)
+      }
+
+      // Get the jsPDF instance
+      const doc = generateProfessionalPDF(clientInfo, items, totals, {
+        docType: 'COTIZACIÓN',
+        docId: quote.id,
+        notes: quote.notes,
+        sellerName: session?.user?.name || quote.creator?.name || 'Aquatech',
+        action: 'instance'
+      });
+
+      // Convert to base64
+      const pdfBase64 = (doc as any).output('datauristring').split(',')[1];
+      const filename = `Cotizacion_${quote.id}_${(quote.clientName || 'Cliente').replace(/\s+/g, '_')}.pdf`;
+
       const res = await fetch(`/api/quotes/${quote.id}/send-to-project`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projectId: selectedProjectId })
+        body: JSON.stringify({ 
+          projectId: selectedProjectId,
+          message: customMessage,
+          pdfBase64,
+          filename
+        })
       })
 
       if (res.ok) {
-        alert("¡Cotización enviada a la bitácora del proyecto correctamente!")
+        alert("¡Cotización y mensaje enviados a la bitácora correctamente!")
+        setCustomMessage('')
         router.refresh()
       } else {
         alert("Error al enviar al proyecto")
       }
     } catch (err) {
-      alert("Error de red")
+      console.error(err)
+      alert("Error de red o generación de PDF")
     } finally {
       setSending(false)
     }
@@ -268,6 +316,19 @@ export default function QuoteDetailClient({ quote, projects = [] }: any) {
                     )}
                   </div>
                 )}
+            </div>
+
+            <div className="mb-md">
+              <label style={{ fontSize: '0.8rem', fontWeight: '600', display: 'block', marginBottom: '8px' }}>
+                Mensaje personalizado (Opcional):
+              </label>
+              <textarea 
+                className="form-input" 
+                style={{ height: '80px', fontSize: '0.85rem' }}
+                placeholder="Ej: Adjunto cotización solicitada para la fase 2..."
+                value={customMessage}
+                onChange={e => setCustomMessage(e.target.value)}
+              />
             </div>
 
             <button 

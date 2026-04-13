@@ -3,8 +3,11 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { formatDateEcuador } from '@/lib/date-utils'
+import { generateProfessionalPDF } from '@/lib/pdf-generator'
+import { useSession } from 'next-auth/react'
 
 export default function QuotesListClient({ initialQuotes, activeProjects = [] }: { initialQuotes: any[], activeProjects?: any[] }) {
+  const { data: session } = useSession()
   const [quotes, setQuotes] = useState(initialQuotes)
   const [filter, setFilter] = useState('ALL')
   
@@ -49,7 +52,50 @@ export default function QuotesListClient({ initialQuotes, activeProjects = [] }:
     try {
       const endpoint = modalMode === 'LINK' ? 'link' : 'share'
       const body: any = { projectId: Number(projectId) }
-      if (modalMode === 'SHARE') body.message = message
+      
+      if (modalMode === 'SHARE') {
+        body.message = message
+        
+        // Find the quote object
+        const quote = quotes.find((q: any) => q.id === selectedQuoteId)
+        if (quote) {
+          const clientInfo = {
+            name: quote.clientName || quote.client?.name || '',
+            ruc: quote.clientRuc || quote.client?.ruc,
+            address: quote.clientAddress || quote.client?.address,
+            phone: quote.clientPhone || quote.client?.phone,
+            date: new Date(quote.createdAt)
+          }
+
+          const items = (quote.items || []).map((item: any) => ({
+            quantity: item.quantity === 'GLOBAL' ? 'GLOBAL' : Number(item.quantity),
+            code: item.material?.code || item.code || '',
+            description: item.description,
+            unitPrice: Number(item.unitPrice),
+            total: Number(item.total)
+          }))
+
+          const totals = {
+            subtotal: Number(quote.subtotal || 0),
+            subtotal0: Number(quote.subtotal0 || 0),
+            subtotal15: Number(quote.subtotal15 || 0),
+            discountTotal: Number(quote.discountTotal || 0),
+            ivaAmount: Number(quote.ivaAmount || 0),
+            totalAmount: Number(quote.totalAmount)
+          }
+
+          const doc = generateProfessionalPDF(clientInfo, items, totals, {
+            docType: 'COTIZACIÓN',
+            docId: quote.id,
+            notes: quote.notes,
+            sellerName: session?.user?.name || quote.creator?.name || 'Aquatech',
+            action: 'instance'
+          });
+
+          body.pdfBase64 = (doc as any).output('datauristring').split(',')[1];
+          body.filename = `Cotizacion_${quote.id}_${(quote.clientName || 'Cliente').replace(/\s+/g, '_')}.pdf`;
+        }
+      }
 
       const res = await fetch(`/api/quotes/${selectedQuoteId}/${endpoint}`, {
         method: 'POST',

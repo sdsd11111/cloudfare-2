@@ -2,6 +2,8 @@ import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
+import { uploadToBunny } from '@/lib/bunny'
+import { notifyProjectTeam } from '@/lib/push'
 
 export async function GET(req: Request) {
   try {
@@ -70,7 +72,7 @@ export async function POST(req: Request) {
         data: {
           userId: session?.user?.id ? Number(session.user.id) : null,
           clientId: finalClientId as number,
-          projectId: data.sendToBitacoraId ? Number(data.sendToBitacoraId) : null,
+          projectId: null, // Standalone quote, never linked automatically
           status: data.status || 'BORRADOR',
           
           // Snapshot client data
@@ -105,16 +107,50 @@ export async function POST(req: Request) {
         include: { items: true }
       })
 
-      // Send to Bitácora if requested (Standalone, no permanent link)
+      // Send to Bitácora if requested (Standalone Document + Message)
       if (data.sendToBitacoraId) {
-        await tx.chatMessage.create({
+        let fileUrl = null
+        if (data.pdfBase64 && data.filename) {
+          try {
+            const buffer = Buffer.from(data.pdfBase64, 'base64')
+            fileUrl = await uploadToBunny(buffer, data.filename, 'quotes')
+          } catch (error) {
+            console.error('Error uploading quote PDF to Bunny:', error)
+          }
+        }
+
+        const chatMsg = await tx.chatMessage.create({
           data: {
             projectId: Number(data.sendToBitacoraId),
             userId: Number(session.user.id),
-            content: `📄 NUEVA COTIZACIÓN GENERADA (#${newQuote.id})\n\nTotal: $${Number(newQuote.totalAmount).toFixed(2)}\n\nEsta es una copia informativa enviada desde el panel de cotizaciones.`,
-            type: 'TEXT'
+            content: data.bitacoraMessage || `📄 NUEVA COTIZACIÓN GENERADA (#${newQuote.id})\n\nTotal: $${Number(newQuote.totalAmount).toFixed(2)}`,
+            type: fileUrl ? 'DOCUMENT' : 'TEXT',
+            media: fileUrl ? {
+               create: {
+                 filename: data.filename || `Cotizacion_${newQuote.id}.pdf`,
+                 mimeType: 'application/pdf',
+                 url: fileUrl
+               }
+            } : undefined
+          },
+          include: { 
+            user: { select: { name: true } },
+            project: { select: { title: true } }
           }
         })
+
+        // Notify Project Team
+        try {
+          await notifyProjectTeam(
+            Number(data.sendToBitacoraId),
+            Number(session.user.id),
+            `¡Nueva Cotización!`,
+            `${session.user.name} ha compartido una cotización en ${chatMsg.project.title}`,
+            `/admin/proyectos/${data.sendToBitacoraId}?tab=bitacora`
+          )
+        } catch (e) {
+          console.error("Error at push notify:", e)
+        }
       }
 
       return newQuote

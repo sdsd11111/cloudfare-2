@@ -368,8 +368,10 @@ export default function ProjectChatUnified({
           const isMe = Number(msg.userId) === Number(userId) || msg.isMe;
           const showPointer = idx === 0 || filteredArray[idx-1]?.userId !== msg.userId;
 
-          // Robust media detection
-          const mediaArray = Array.isArray(msg.media) ? msg.media : (msg.media ? [msg.media] : []);
+          // Robust media detection & Sender derivation
+          const userName = msg.userName || msg.user?.name || 'Usuario';
+          let mediaArray = Array.isArray(msg.media) ? [...msg.media] : (msg.media ? [msg.media] : []);
+          
           const mediaObj = mediaArray[0];
           const mime = mediaObj?.mimeType || '';
 
@@ -377,13 +379,13 @@ export default function ProjectChatUnified({
             <div key={msg.id || idx} className={`message-row ${isMe ? 'me' : 'them'}`}>
                {!isMe && showPointer && (
                  <div className="user-name" style={{ 
-                   color: getSenderColor(msg.userName || 'Usuario'),
+                   color: getSenderColor(userName),
                    fontWeight: '700',
                    fontSize: '0.75rem',
                    marginBottom: '2px',
                    paddingLeft: '2px'
                  }}>
-                   {msg.userName || 'Usuario'}
+                   {userName}
                  </div>
                )}
                <div className={`message-bubble ${showPointer ? 'has-pointer' : ''}`}>
@@ -394,7 +396,7 @@ export default function ProjectChatUnified({
                  )}
                  
                  {/* Text Content */}
-                 {msg.content && (msg.type === 'TEXT' || msg.type === 'MESSAGE' || !msg.type) && <p>{msg.content}</p>}
+                 {msg.content && (msg.type === 'TEXT' || msg.type === 'MESSAGE' || msg.type === 'DOCUMENT' || msg.type === 'FILE' || !msg.type) && <p>{msg.content}</p>}
                  
                  {/* Media Rendering */}
                  {mediaArray.length > 0 && mediaArray.map((m: any, mIdx: number) => (
@@ -417,7 +419,7 @@ export default function ProjectChatUnified({
                        </div>
                      )}
 
-                     {(m.type === 'FILE' || m.type === 'DOCUMENT' || (!m.mimeType && m.url?.match(/\.(pdf|doc|docx|xls|xlsx|zip)$/i))) && !m.mimeType?.startsWith('image/') && !m.mimeType?.startsWith('video/') && (
+                     {(m.type === 'FILE' || m.type === 'DOCUMENT' || m.mimeType?.includes('pdf') || m.mimeType?.includes('doc') || (!m.mimeType && m.url?.match(/\.(pdf|doc|docx|xls|xlsx|zip)$/i))) && !m.mimeType?.startsWith('image/') && !m.mimeType?.startsWith('video/') && (
                        <div className="document-box" onClick={() => window.open(m.url, '_blank')}>
                           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
                           <div className="doc-info">
@@ -1081,13 +1083,15 @@ export default function ProjectChatUnified({
           margin: 4px -6px;
           border-radius: 8px;
           overflow: hidden;
-          background-color: #111b21;
+          background-color: #0d1418;
           display: flex;
           justify-content: center;
+          border: 1px solid rgba(255,255,255,0.05);
         }
         .media-preview img, .media-preview video {
           max-width: 100%;
-          max-height: 400px;
+          max-height: 280px; 
+          min-width: 180px;
           object-fit: contain;
           cursor: pointer;
         }

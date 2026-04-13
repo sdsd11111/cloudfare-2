@@ -130,12 +130,12 @@ export default function AboutUs() {
                 position: 'absolute',
                 bottom: '24px',
                 right: '24px',
-                backgroundColor: '#22C55E',
+                backgroundColor: '#004A87',
                 color: 'white',
                 padding: '12px 24px',
                 borderRadius: '0px', // Square
                 textAlign: 'center',
-                boxShadow: '0 10px 25px rgba(34,197,94,0.4)',
+                boxShadow: '0 10px 25px rgba(0,74,135,0.4)',
                 zIndex: 10,
                 border: '1px solid rgba(255,255,255,0.2)'
               }}>
