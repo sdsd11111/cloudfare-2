@@ -675,8 +675,8 @@ export default function ProjectChatUnified({
                 mode={showMediaCapture}
                 skipTranscription={true}
                 onCapture={(blob, type, transcription) => {
-                  const fileStr = type === 'audio' ? 'AUDIO' : 'VIDEO';
-                  const ext = type === 'audio' ? 'webm' : 'webm';
+                  const fileStr = type === 'audio' ? 'AUDIO' : type === 'photo' ? 'IMAGE' : 'VIDEO';
+                  const ext = type === 'audio' ? 'webm' : type === 'photo' ? 'jpg' : 'webm';
                   const mediaFile = new File([blob], `capture_${Date.now()}.${ext}`, { type: blob.type });
                   onSendMessage(transcription, fileStr, { file: mediaFile });
                   setShowMediaCapture(null);

@@ -367,5 +367,60 @@ export const catalogData: Product[] = [
     price: 18.00,
     img: "https://cesarweb.b-cdn.net/home/locales-lifestyle.webp",
     tags: ['REPUESTO']
+  },
+  // RIEGO TECNIFICADO
+  {
+    id: 41,
+    name: "ASPERSOR POP UP HUNTER PGP 3/4\"",
+    code: "AQ-RIE-PGP",
+    category: 'Riego',
+    price: 32.00,
+    img: "https://cesarweb.b-cdn.net/home/hero-slider-3.webp",
+    tags: ['RESIDENCIAL', 'HUNTER']
+  },
+  {
+    id: 42,
+    name: "BOQUILLA HUNTER 17A",
+    code: "AQ-RIE-17A",
+    category: 'Riego',
+    price: 8.50,
+    img: "https://cesarweb.b-cdn.net/home/showroom_interior.webp",
+    tags: ['BOQUILLA']
+  },
+  {
+    id: 43,
+    name: "CONTROLADOR HUNTER X-CORE (8 EST)",
+    code: "AQ-RIE-XCORE8",
+    category: 'Riego',
+    price: 385.00,
+    img: "https://cesarweb.b-cdn.net/home/detalle_ingenieria.webp",
+    tags: ['AUTOMATIZACIÓN']
+  },
+  {
+    id: 44,
+    name: "REGULADOR DE PRESIÓN SENNINGER 1-1/2\"",
+    code: "AQ-RIE-SEN15",
+    category: 'Riego',
+    price: 135.00,
+    img: "https://cesarweb.b-cdn.net/home/equipo_trabajo.webp",
+    tags: ['HILLS/LADERAS']
+  },
+  {
+    id: 45,
+    name: "ASPERSOR NETAFIM D-NET 8550",
+    code: "AQ-RIE-DNET",
+    category: 'Riego',
+    price: 120.00,
+    img: "https://cesarweb.b-cdn.net/home/matriz_frente.webp",
+    tags: ['AGRÍCOLA']
+  },
+  {
+    id: 46,
+    name: "CONTROLADOR BACCARA G75 9VDC",
+    code: "AQ-RIE-BACC",
+    category: 'Riego',
+    price: 155.00,
+    img: "https://cesarweb.b-cdn.net/home/locales-lifestyle.webp",
+    tags: ['ZONA RURAL (BAT)']
   }
 ];

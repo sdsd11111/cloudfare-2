@@ -47,7 +47,7 @@ export async function sendPushToUser(userId: number, payload: PushPayload) {
           },
           pushPayload,
           {
-            TTL: 60,
+            TTL: 86400,
             urgency: 'high'
           }
         ).catch(async (err: any) => {

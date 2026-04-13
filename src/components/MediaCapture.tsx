@@ -14,10 +14,11 @@ const Square = ({ size = 24 }: any) => <svg {...svgProps(size)}><rect width="18"
 const Trash2 = ({ size = 24 }: any) => <svg {...svgProps(size)}><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
 const Loader2 = ({ size = 24, className }: any) => <svg {...svgProps(size)} className={className}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
 const CheckCircle2 = ({ size = 24 }: any) => <svg {...svgProps(size)}><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+const Camera = ({ size = 24 }: any) => <svg {...svgProps(size)}><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
 
 interface MediaCaptureProps {
-  onCapture: (blob: Blob, type: 'audio' | 'video', transcription: string) => void
-  mode?: 'audio' | 'video'
+  onCapture: (blob: Blob, type: 'audio' | 'video' | 'photo', transcription: string) => void
+  mode?: 'audio' | 'video' | 'photo'
   placeholder?: string
   transcriptionOnly?: boolean
   skipTranscription?: boolean
@@ -45,6 +46,7 @@ export default function MediaCapture({
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment')
+  const [cameraSubMode, setCameraSubMode] = useState<'photo' | 'video'>('photo')
   const chunksRef = useRef<Blob[]>([])
   const audioChunksRef = useRef<Blob[]>([]) // Separate audio chunks
 
@@ -58,8 +60,8 @@ export default function MediaCapture({
     }
   }, [])
 
-  const getSupportedMimeType = (mediaType: 'audio' | 'video'): string => {
-    const candidates = mediaType === 'video'
+  const getSupportedMimeType = (mediaType: 'audio' | 'video' | 'photo'): string => {
+    const candidates = (mediaType === 'video' || mediaType === 'photo')
       ? ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4']
       : ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg', 'audio/mp4']
     
@@ -80,7 +82,7 @@ export default function MediaCapture({
 
       const newStream = await navigator.mediaDevices.getUserMedia({
         audio: true,
-        video: mode === 'video' ? { facingMode } : false
+        video: (mode === 'video' || mode === 'photo') ? { facingMode } : false
       })
 
       streamRef.current = newStream
@@ -175,6 +177,34 @@ export default function MediaCapture({
       if (videoRef.current) {
         videoRef.current.srcObject = null
       }
+    }
+  }
+
+  const takePhoto = async () => {
+    if (!videoRef.current || !streamRef.current) return
+    
+    setIsProcessing(true)
+    try {
+      const video = videoRef.current
+      const canvas = document.createElement('canvas')
+      canvas.width = video.videoWidth
+      canvas.height = video.videoHeight
+      
+      const ctx = canvas.getContext('2d')
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+        canvas.toBlob((blob) => {
+          if (blob) {
+            setMediaBlob(blob)
+            setPreviewUrl(URL.createObjectURL(blob))
+            onCapture(blob, 'photo', '')
+          }
+          setIsProcessing(false)
+        }, 'image/jpeg', 0.85)
+      }
+    } catch (err) {
+      console.error('Error taking photo:', err)
+      setIsProcessing(false)
     }
   }
 
@@ -279,7 +309,7 @@ export default function MediaCapture({
                 ? `GRABANDO - ${formatTime(timer)}` 
                 : transcription 
                   ? `Completado (${formatTime(recordedDuration)})` 
-                  : mode === 'video' ? 'Video' : 'Audio'
+                  : mode === 'video' ? (cameraSubMode === 'photo' ? 'Cámara: Foto' : 'Cámara: Video') : 'Grabadora'
               }
             </span>
           </div>
@@ -394,31 +424,77 @@ export default function MediaCapture({
           </button>
         )}
 
-        {/* Record / Stop buttons */}
-        {!isRecording && !transcription && (
-          <button 
-            type="button"
-            onClick={startRecording}
-            style={{
-              width: compact ? '40px' : '60px',
-              height: compact ? '40px' : '60px',
-              borderRadius: '50%',
-              backgroundColor: 'var(--primary)',
-              color: 'white',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 4px 15px var(--primary-glow)',
-              border: 'none',
-              cursor: 'pointer',
-              transition: 'transform 0.2s'
-            }}
-            onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-            onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
-            title={mode === 'video' ? 'Grabar Video' : 'Grabar Audio'}
-          >
-            {mode === 'video' ? <Video size={compact ? 18 : 24} /> : <Mic size={compact ? 18 : 24} />}
-          </button>
+        {/* Mode Selector (Photo / Video) */}
+        {mode === 'video' && !isRecording && !previewUrl && (
+          <div style={{
+            display: 'flex',
+            backgroundColor: 'var(--bg-card)',
+            padding: '4px',
+            borderRadius: '20px',
+            gap: '5px',
+            marginBottom: '5px'
+          }}>
+            <button
+              onClick={() => setCameraSubMode('photo')}
+              style={{
+                padding: '6px 15px',
+                borderRadius: '16px',
+                border: 'none',
+                fontSize: '0.75rem',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                backgroundColor: cameraSubMode === 'photo' ? 'var(--primary)' : 'transparent',
+                color: cameraSubMode === 'photo' ? 'white' : 'var(--text-muted)',
+                transition: 'all 0.2s'
+              }}
+            >FOTO</button>
+            <button
+              onClick={() => setCameraSubMode('video')}
+              style={{
+                padding: '6px 15px',
+                borderRadius: '16px',
+                border: 'none',
+                fontSize: '0.75rem',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                backgroundColor: cameraSubMode === 'video' ? 'var(--primary)' : 'transparent',
+                color: cameraSubMode === 'video' ? 'white' : 'var(--text-muted)',
+                transition: 'all 0.2s'
+              }}
+            >VIDEO</button>
+          </div>
+        )}
+
+        {/* Record / Stop / Photo buttons */}
+        {!isRecording && !transcription && !previewUrl && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+            <button 
+              type="button"
+              onClick={mode === 'video' && cameraSubMode === 'photo' ? takePhoto : startRecording}
+              style={{
+                width: compact ? '40px' : '60px',
+                height: compact ? '40px' : '60px',
+                borderRadius: '50%',
+                backgroundColor: 'var(--primary)',
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 15px var(--primary-glow)',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'transform 0.2s'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+              onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+              title={mode === 'video' ? (cameraSubMode === 'photo' ? 'Tomar Foto' : 'Grabar Video') : 'Grabar Audio'}
+            >
+              {mode === 'video' 
+                ? (cameraSubMode === 'photo' ? <Camera size={compact ? 18 : 24} /> : <Video size={compact ? 18 : 24} />) 
+                : <Mic size={compact ? 18 : 24} />
+              }
+            </button>
+          </div>
         )}
 
         {isRecording && (
