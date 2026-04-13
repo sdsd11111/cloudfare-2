@@ -1,7 +1,7 @@
 // ============================================================
 // Aquatech CRM — Custom Service Worker (Offline-First) v14
 // ============================================================
-const CACHE_VERSION = 'v33';
+const CACHE_VERSION = 'v34';
 const STATIC_CACHE = `aquatech-static-${CACHE_VERSION}`;
 const PAGES_CACHE  = `aquatech-pages-${CACHE_VERSION}`;
 const ASSETS_CACHE = `aquatech-assets-${CACHE_VERSION}`;
@@ -519,19 +519,22 @@ self.addEventListener('push', (event) => {
     body: data.body || 'Nueva actualización en tu proyecto',
     icon: data.icon || '/icon-192.png',
     badge: data.badge || '/icon-192.png',
-    vibrate: [300, 100, 300, 100, 400, 100, 500, 100, 800, 100, 800, 100], // Aggressive pattern to wake device
-    tag: data.tag || 'general',
-    renotify: true,           // Important for same-tag notifications to re-trigger alert
-    requireInteraction: true, // Persist on lock screen until swiped/opened
+    vibrate: [500, 200, 500, 200, 500, 200, 800, 200, 1000, 200, 1000], // ALARM PATTERN
+    tag: (data.tag || 'general') + '-' + Date.now(), // FORCE UNIQUE
+    renotify: true,
+    requireInteraction: true,
     silent: false,
-    timestamp: Date.now(),    // Help OS order and prioritize
+    timestamp: Date.now(),
+    icon: data.icon || '/icon-192.png',
+    badge: data.badge || '/icon-192.png',
+    image: '/logo.jpg', // Large image for better visibility
     data: {
       url: data.url || '/admin/operador',
       timestamp: Date.now()
     },
     actions: [
-      { action: 'open', title: '📂 Abrir' },
-      { action: 'dismiss', title: '✕ Cerrar' }
+      { action: 'open', title: '📂 Ver Detalles' },
+      { action: 'close', title: '✕ Ignorar' }
     ]
   };
 
