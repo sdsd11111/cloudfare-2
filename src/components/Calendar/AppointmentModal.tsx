@@ -29,8 +29,8 @@ export default function AppointmentModal({
   isAdminView = false
 }: AppointmentModalProps) {
   const [loading, setLoading] = useState(false)
-  const [assignMode, setAssignMode] = useState<AssignMode>('UNO')
   const [selectedOperatorIds, setSelectedOperatorIds] = useState<number[]>([])
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [filteredProjects, setFilteredProjects] = useState<any[]>(projects)
   const [formData, setFormData] = useState({
     title: '',
@@ -44,10 +44,9 @@ export default function AppointmentModal({
 
   useEffect(() => {
     if (isOpen) {
-      setLoading(false) // Force reset loading on open
+      setLoading(false)
+      setIsDropdownOpen(false)
       if (initialData) {
-        // Editing mode — always single
-        setAssignMode('UNO')
         setSelectedOperatorIds(initialData.userId ? [initialData.userId] : [])
         setFormData({
           title: initialData.title || '',
@@ -64,7 +63,6 @@ export default function AppointmentModal({
         const inOneHour = new Date(now)
         inOneHour.setHours(now.getHours() + 1)
 
-        setAssignMode('UNO')
         setSelectedOperatorIds([])
         setFormData({
           title: '',
@@ -82,17 +80,7 @@ export default function AppointmentModal({
   // Fetch projects filtered by selected operators
   useEffect(() => {
     const fetchFilteredProjects = async () => {
-      let targetIds: number[] = []
-
-      if (assignMode === 'TODOS') {
-        targetIds = operators.map(op => op.id)
-      } else if (assignMode === 'VARIOS') {
-        targetIds = selectedOperatorIds
-      } else {
-        // UNO
-        const singleId = Number(formData.userId)
-        targetIds = singleId > 0 ? [singleId] : []
-      }
+      let targetIds = selectedOperatorIds
 
       if (targetIds.length === 0) {
         setFilteredProjects(projects) // No filter, show all
@@ -115,7 +103,7 @@ export default function AppointmentModal({
     if (isAdminView && isOpen) {
       fetchFilteredProjects()
     }
-  }, [assignMode, selectedOperatorIds, formData.userId, isAdminView, isOpen])
+  }, [selectedOperatorIds, isAdminView, isOpen])
 
   if (!isOpen) return null
 
@@ -125,16 +113,16 @@ export default function AppointmentModal({
     )
   }
 
+  const toggleAllOperators = () => {
+    if (selectedOperatorIds.length === operators.length) {
+      setSelectedOperatorIds([])
+    } else {
+      setSelectedOperatorIds(operators.map(op => op.id))
+    }
+  }
+
   const getTargetUserIds = (): number[] => {
-    if (assignMode === 'TODOS') {
-      return operators.map(op => op.id)
-    }
-    if (assignMode === 'VARIOS') {
-      return selectedOperatorIds
-    }
-    // UNO
-    const singleId = Number(formData.userId)
-    return singleId > 0 ? [singleId] : []
+    return selectedOperatorIds
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -218,77 +206,68 @@ export default function AppointmentModal({
                   <div className="form-group">
                     <label className="form-label">Asignar a Operador</label>
 
-                    {!isEditing && (
-                      <div className="assign-mode-selector">
-                        {[
-                          { mode: 'TODOS' as AssignMode, label: '👥 Todos', desc: 'Todo el equipo' },
-                          { mode: 'VARIOS' as AssignMode, label: '✋ Varios', desc: 'Seleccionar varios' },
-                          { mode: 'UNO' as AssignMode, label: '👤 Uno', desc: 'Un operador' }
-                        ].map(item => (
-                          <button
-                            key={item.mode}
-                            type="button"
-                            className={`assign-mode-btn ${assignMode === item.mode ? 'active' : ''}`}
-                            onClick={() => {
-                              setAssignMode(item.mode)
-                              setSelectedOperatorIds([])
-                              setFormData(prev => ({ ...prev, projectId: '' }))
-                            }}
-                          >
-                            <span className="assign-mode-label">{item.label}</span>
-                            <span className="assign-mode-desc">{item.desc}</span>
-                          </button>
-                        ))}
+                    <div style={{ position: 'relative' }}>
+                      <div 
+                        className={`form-select ${isEditing ? 'disabled' : ''}`} 
+                        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: isEditing ? 'not-allowed' : 'pointer' }}
+                        onClick={() => !isEditing && setIsDropdownOpen(!isDropdownOpen)}
+                      >
+                        <span style={{ fontSize: '0.85rem' }}>
+                          {selectedOperatorIds.length === 0 
+                            ? 'Seleccionar operador...' 
+                            : selectedOperatorIds.length === operators.length 
+                              ? 'Todos los operadores seleccionados'
+                              : `${selectedOperatorIds.length} operador${selectedOperatorIds.length > 1 ? 'es' : ''} seleccionado${selectedOperatorIds.length > 1 ? 's' : ''}`
+                          }
+                        </span>
+                        <span style={{ fontSize: '0.7rem' }}>▼</span>
                       </div>
-                    )}
 
-                    {assignMode === 'TODOS' && !isEditing && (
-                      <div className="assign-summary">
-                        <span className="assign-badge all">✓ {operators.length} operadores seleccionados</span>
-                        <div className="assign-avatars">
-                          {operators.map(op => (
-                            <span key={op.id} className="assign-chip">{op.name}</span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {assignMode === 'VARIOS' && !isEditing && (
-                      <div className="assign-multi-list">
-                        {operators.map(op => (
-                          <label key={op.id} className={`assign-multi-item ${selectedOperatorIds.includes(op.id) ? 'checked' : ''}`}>
+                      {isDropdownOpen && !isEditing && (
+                        <div style={{
+                          position: 'absolute',
+                          top: '100%',
+                          left: 0,
+                          right: 0,
+                          marginTop: '4px',
+                          background: 'var(--bg-card)',
+                          border: '1px solid var(--border-active)',
+                          borderRadius: 'var(--radius-md)',
+                          boxShadow: 'var(--shadow-md)',
+                          zIndex: 10,
+                          maxHeight: '350px',
+                          overflowY: 'auto'
+                        }}>
+                          <label className={`assign-multi-item ${selectedOperatorIds.length === operators.length ? 'checked' : ''}`} style={{ borderBottom: '1px solid var(--border)', borderRadius: 'var(--radius-md) var(--radius-md) 0 0' }}>
                             <input
                               type="checkbox"
-                              checked={selectedOperatorIds.includes(op.id)}
+                              checked={selectedOperatorIds.length === operators.length}
                               onChange={() => {
-                                toggleOperator(op.id)
+                                toggleAllOperators()
                                 setFormData(prev => ({ ...prev, projectId: '' }))
                               }}
                             />
-                            <span className="assign-multi-name">{op.name}</span>
+                            <span className="assign-multi-name" style={{ fontWeight: 700 }}>TODOS</span>
                           </label>
-                        ))}
-                        {selectedOperatorIds.length > 0 && (
-                          <p className="assign-count">{selectedOperatorIds.length} seleccionado{selectedOperatorIds.length > 1 ? 's' : ''}</p>
-                        )}
-                      </div>
-                    )}
 
-                    {(assignMode === 'UNO' || isEditing) && (
-                      <select 
-                        className="form-select"
-                        required
-                        value={formData.userId}
-                        onChange={e => {
-                          setFormData({...formData, userId: e.target.value, projectId: ''})
-                        }}
-                      >
-                        <option value="" disabled>Seleccionar operador...</option>
-                        {operators.map(op => (
-                          <option key={op.id} value={op.id}>{op.name}</option>
-                        ))}
-                      </select>
-                    )}
+                          <div style={{ padding: '4px' }}>
+                            {operators.map(op => (
+                              <label key={op.id} className={`assign-multi-item ${selectedOperatorIds.includes(op.id) ? 'checked' : ''}`}>
+                                <input
+                                  type="checkbox"
+                                  checked={selectedOperatorIds.includes(op.id)}
+                                  onChange={() => {
+                                    toggleOperator(op.id)
+                                    setFormData(prev => ({ ...prev, projectId: '' }))
+                                  }}
+                                />
+                                <span className="assign-multi-name">{op.name}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 
