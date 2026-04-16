@@ -1,0 +1,7 @@
+name = "aquatech-crm"
+compatibility_date = "2024-04-16"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+# Las variables de entorno se manejan mejor desde el Dashboard de Cloudflare, 
+# pero aquí definimos la compatibilidad de Node.js necesaria para mysql2.
