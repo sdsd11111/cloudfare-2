@@ -14,9 +14,16 @@ const createPrismaClient = () => {
       console.warn("No DATABASE_URL found for Prisma edge initialization.")
     }
     
-    // Explicitly configure No-SSL connection using the MariaDB driver (compatible with MySQL)
+    // Parse the DATABASE_URL to extract connection details
+    const dbUrl = new URL(connectionString)
+    
+    // Explicitly configure No-SSL connection using the MariaDB driver
     const pool = mariadb.createPool({ 
-      connectionString: connectionString,
+      host: dbUrl.hostname,
+      port: Number(dbUrl.port) || 3306,
+      user: dbUrl.username,
+      password: dbUrl.password,
+      database: dbUrl.pathname.substring(1), // remove leading slash
       ssl: false,
       connectTimeout: 10000,
       connectionLimit: 10
