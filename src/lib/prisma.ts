@@ -1,6 +1,5 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaMariaDb } from '@prisma/adapter-mariadb'
-import * as mariadb from 'mariadb'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
@@ -18,7 +17,7 @@ const createPrismaClient = () => {
     const dbUrl = new URL(connectionString)
     
     // Explicitly configure No-SSL connection using the MariaDB driver
-    const pool = mariadb.createPool({ 
+    const adapterConfig = { 
       host: dbUrl.hostname,
       port: Number(dbUrl.port) || 3306,
       user: dbUrl.username,
@@ -27,9 +26,9 @@ const createPrismaClient = () => {
       ssl: false,
       connectTimeout: 10000,
       connectionLimit: 10
-    })
+    }
     
-    const adapter = new PrismaMariaDb(pool)
+    const adapter = new PrismaMariaDb(adapterConfig)
     return new PrismaClient({ adapter })
   }
   
