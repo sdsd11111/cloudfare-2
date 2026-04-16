@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { getLocalNow, formatForDateTimeInput, forceEcuadorTZ } from '@/lib/date-utils'
 
 interface AppointmentModalProps {
@@ -29,6 +30,7 @@ export default function AppointmentModal({
   isAdminView = false
 }: AppointmentModalProps) {
   const [loading, setLoading] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const [selectedOperatorIds, setSelectedOperatorIds] = useState<number[]>([])
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [filteredProjects, setFilteredProjects] = useState<any[]>(projects)
@@ -43,7 +45,9 @@ export default function AppointmentModal({
   })
 
   useEffect(() => {
+    setMounted(true)
     if (isOpen) {
+      document.body.style.overflow = 'hidden'
       setLoading(false)
       setIsDropdownOpen(false)
       if (initialData) {
@@ -74,6 +78,12 @@ export default function AppointmentModal({
           status: 'PENDIENTE'
         })
       }
+    } else {
+      document.body.style.overflow = ''
+    }
+
+    return () => {
+      document.body.style.overflow = ''
     }
   }, [isOpen, initialData, userId])
 
@@ -105,7 +115,8 @@ export default function AppointmentModal({
     }
   }, [selectedOperatorIds, isAdminView, isOpen])
 
-  if (!isOpen) return null
+  if (!isOpen || !mounted) return null
+  const body = document.body
 
   const toggleOperator = (id: number) => {
     setSelectedOperatorIds(prev =>
@@ -174,21 +185,17 @@ export default function AppointmentModal({
 
   const isEditing = !!initialData?.id
 
-  return (
+  return createPortal(
     <div className="modal-overlay">
       <div className="modal-container card">
-        {/* Header fijo */}
-        <div className="modal-header card-header">
+        <div className="modal-header card-header" style={{ flexShrink: 0 }}>
           <h3 className="card-title">{isEditing ? 'Editar Agendamiento' : 'Nuevo Agendamiento'}</h3>
           <button className="btn btn-ghost" onClick={onClose} type="button">✕</button>
         </div>
 
-        {/* Form: scrollable body + fixed footer */}
         <form onSubmit={handleSubmit} className="modal-form">
-          {/* Scrollable content area */}
           <div className="modal-scroll">
             <div className="modal-grid">
-              {/* COLUMNA IZQUIERDA */}
               <div className="modal-col">
                 <div className="form-group">
                   <label className="form-label">Título de la Actividad</label>
@@ -205,7 +212,6 @@ export default function AppointmentModal({
                 {isAdminView && (
                   <div className="form-group">
                     <label className="form-label">Asignar a Operador</label>
-
                     <div style={{ position: 'relative' }}>
                       <div 
                         className={`form-select ${isEditing ? 'disabled' : ''}`} 
@@ -288,7 +294,6 @@ export default function AppointmentModal({
                 </div>
               </div>
 
-              {/* COLUMNA DERECHA */}
               <div className="modal-col">
                 <div className="datetime-row">
                   <div className="form-group">
@@ -340,8 +345,7 @@ export default function AppointmentModal({
             </div>
           </div>
 
-          {/* Footer FIJO — nunca scrollea */}
-          <div className="modal-footer">
+          <div className="modal-footer" style={{ flexShrink: 0 }}>
             {initialData?.id && onDelete && (
               <button 
                 type="button" 
@@ -375,23 +379,22 @@ export default function AppointmentModal({
       </div>
 
       <style jsx>{`
-        /* ========== OVERLAY ========== */
         .modal-overlay {
           position: fixed;
           inset: 0;
-          background: rgba(0,0,0,0.6);
-          backdrop-filter: blur(6px);
+          background: rgba(0,0,0,0.85);
+          backdrop-filter: blur(8px);
           display: flex;
           align-items: center;
           justify-content: center;
-          z-index: 99999; /* Alto para sobreescribir navs y footers */
+          z-index: 20000000;
           padding: 24px;
         }
 
-        /* ========== CONTAINER — fullscreen en desktop ========== */
         .modal-container {
           width: 100%;
           max-width: 960px;
+          height: auto;
           max-height: calc(100vh - 48px);
           display: flex;
           flex-direction: column;
@@ -399,15 +402,15 @@ export default function AppointmentModal({
           border: 1px solid var(--border-active);
           border-radius: var(--radius-lg);
           overflow: hidden;
+          box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         }
 
-        /* ========== HEADER ========== */
         .modal-header {
           flex-shrink: 0;
           border-bottom: 1px solid var(--border);
+          padding: var(--space-md) var(--space-lg);
         }
 
-        /* ========== FORM ========== */
         .modal-form {
           display: flex;
           flex-direction: column;
@@ -416,7 +419,6 @@ export default function AppointmentModal({
           overflow: hidden;
         }
 
-        /* ========== SCROLLABLE BODY ========== */
         .modal-scroll {
           flex: 1;
           overflow-y: auto;
@@ -424,7 +426,6 @@ export default function AppointmentModal({
           padding: var(--space-lg);
         }
 
-        /* ========== GRID 2-COL ========== */
         .modal-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
@@ -448,7 +449,6 @@ export default function AppointmentModal({
           gap: var(--space-sm);
         }
 
-        /* ========== FOOTER — SIEMPRE FIJO ABAJO ========== */
         .modal-footer {
           display: flex;
           gap: var(--space-sm);
@@ -463,179 +463,78 @@ export default function AppointmentModal({
           min-width: 0;
         }
 
-        /* ========== ASSIGN MODE ========== */
-        .assign-mode-selector {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 6px;
-          margin-bottom: 10px;
-        }
-        .assign-mode-btn {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 2px;
-          padding: 10px 6px;
-          border-radius: var(--radius-md);
-          border: 2px solid var(--border);
-          background: var(--bg-surface);
-          cursor: pointer;
-          transition: all 0.2s ease;
-          color: var(--text);
-        }
-        .assign-mode-btn:hover {
-          border-color: var(--primary);
-          background: var(--bg-card-hover);
-        }
-        .assign-mode-btn.active {
-          border-color: var(--primary);
-          background: var(--primary-glow);
-          box-shadow: 0 0 0 1px var(--primary);
-        }
-        .assign-mode-label {
-          font-weight: 700;
-          font-size: 0.85rem;
-        }
-        .assign-mode-desc {
-          font-size: 0.65rem;
-          color: var(--text-muted);
-          text-align: center;
-        }
-        .assign-summary {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-        }
-        .assign-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 5px 10px;
-          border-radius: var(--radius-md);
-          font-size: 0.78rem;
-          font-weight: 600;
-        }
-        .assign-badge.all {
-          background: var(--primary-glow);
-          color: var(--primary);
-        }
-        .assign-avatars {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 4px;
-        }
-        .assign-chip {
-          padding: 3px 8px;
-          border-radius: 20px;
-          background: var(--bg-deep);
-          font-size: 0.72rem;
-          color: var(--text-muted);
-          font-weight: 500;
-        }
-        .assign-multi-list {
-          display: flex;
-          flex-direction: column;
-          gap: 3px;
-          max-height: 150px;
-          overflow-y: auto;
-          padding: 2px;
-        }
         .assign-multi-item {
           display: flex;
           align-items: center;
-          gap: 8px;
-          padding: 6px 10px;
+          gap: 10px;
+          padding: 8px 12px;
           border-radius: var(--radius-sm);
           cursor: pointer;
-          transition: background 0.15s ease;
-          border: 1px solid transparent;
+          transition: background 0.2s ease;
         }
         .assign-multi-item:hover {
-          background: var(--bg-card-hover);
+          background: var(--bg-surface);
         }
         .assign-multi-item.checked {
           background: var(--primary-glow);
-          border-color: var(--primary);
         }
         .assign-multi-item input[type="checkbox"] {
           accent-color: var(--primary);
-          width: 15px;
-          height: 15px;
+          width: 16px;
+          height: 16px;
         }
         .assign-multi-name {
-          font-size: 0.82rem;
+          font-size: 0.85rem;
           font-weight: 500;
           color: var(--text);
         }
-        .assign-count {
-          font-size: 0.72rem;
-          color: var(--text-muted);
-          margin-top: 2px;
-          font-weight: 600;
-        }
 
-        /* ========== MOBILE ========== */
         @media (max-width: 768px) {
           .modal-overlay {
             padding: 0;
-            z-index: 99999; /* Sobre-escribe cualquier header/footer */
+            z-index: 20000000 !important;
+            background: var(--bg-body);
+            display: block;
           }
           .modal-container {
-            width: 100vw;
-            max-width: 100vw;
-            height: 100vh;
-            height: 100dvh;
-            max-height: 100vh;
-            max-height: 100dvh;
+            width: 100% !important;
+            max-width: 100% !important;
+            height: 100dvh !important;
+            max-height: 100dvh !important;
             border-radius: 0;
             border: none;
-            margin: 0;
+            position: fixed;
+            top: 0;
+            left: 0;
           }
           .modal-scroll {
             padding: var(--space-md);
-            padding-bottom: var(--space-lg);
           }
           .modal-grid {
             grid-template-columns: 1fr;
             gap: var(--space-sm);
           }
-          .modal-col {
-            gap: var(--space-sm);
-          }
-          .modal-textarea {
-            min-height: 50px;
-          }
-          .datetime-row {
-            grid-template-columns: 1fr 1fr;
-            gap: var(--space-xs);
-          }
           .modal-footer {
-            padding: var(--space-sm) var(--space-md);
+            padding: var(--space-md);
+            padding-bottom: max(var(--space-md), env(safe-area-inset-bottom));
+            flex-direction: row; /* Default mobile horizontal */
+            gap: 10px;
           }
-          .assign-mode-selector {
-            grid-template-columns: repeat(3, 1fr);
-            gap: 4px;
+          .modal-header {
+             padding: 12px 16px;
           }
-          .assign-mode-btn {
-            padding: 8px 4px;
-          }
-          .assign-mode-label {
-            font-size: 0.75rem;
-          }
-          .assign-mode-desc {
-            font-size: 0.6rem;
+          .modal-header h3 {
+             font-size: 1.1rem;
           }
         }
 
-        @media (max-width: 400px) {
-          .datetime-row {
-            grid-template-columns: 1fr;
-          }
+        @media (max-width: 480px) {
           .modal-footer {
-            flex-direction: column;
+            flex-direction: column; /* Stack on very small screens */
           }
         }
       `}</style>
-    </div>
+    </div>,
+    document.body
   );
 }
