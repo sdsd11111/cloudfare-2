@@ -11,7 +11,7 @@ const createPrismaClient = () => {
   if (process.env.NEXT_RUNTIME === 'edge' || process.env.NODE_ENV === 'production') {
     const connectionString = process.env.DATABASE_URL
     if (!connectionString) {
-      console.warn("No DATABASE_URL found for Prisma edge initialization.")
+      throw new Error("No DATABASE_URL found for Prisma edge initialization.")
     }
     
     // Parse the DATABASE_URL to extract connection details
