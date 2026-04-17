@@ -1,14 +1,21 @@
 import nodemailer from 'nodemailer'
 
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: Number(process.env.EMAIL_PORT) || 465,
-  secure: process.env.EMAIL_SECURE === 'true',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-})
+// Lazy transporter — deferred to runtime to avoid build-time crashes
+let _transporter: ReturnType<typeof nodemailer.createTransport> | null = null
+function getTransporter() {
+  if (!_transporter) {
+    _transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: Number(process.env.EMAIL_PORT) || 465,
+      secure: process.env.EMAIL_SECURE === 'true',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    })
+  }
+  return _transporter
+}
 
 export async function sendWelcomeEmail(to: string, name: string, username: string, password: string) {
   const loginUrl = `${process.env.NEXTAUTH_URL}/admin/login`
@@ -58,7 +65,7 @@ export async function sendWelcomeEmail(to: string, name: string, username: strin
   }
 
   try {
-    const info = await transporter.sendMail(mailOptions)
+    const info = await getTransporter().sendMail(mailOptions)
     console.log('Email enviado: %s', info.messageId)
     return { success: true, messageId: info.messageId }
   } catch (error) {

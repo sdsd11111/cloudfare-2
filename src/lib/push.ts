@@ -1,12 +1,23 @@
 import webpush from 'web-push'
 import { prisma } from './prisma'
 
-// Configure VAPID details
-webpush.setVapidDetails(
-  process.env.VAPID_SUBJECT || 'mailto:aquatech@cesarreyesjaramillo.com',
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
-)
+// Lazy VAPID initialization — deferred to runtime to avoid build-time crashes
+let vapidConfigured = false
+function ensureVapidConfigured() {
+  if (vapidConfigured) return
+  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+  const privateKey = process.env.VAPID_PRIVATE_KEY
+  if (!publicKey || !privateKey) {
+    console.warn('[PUSH] VAPID keys not set — push notifications disabled')
+    return
+  }
+  webpush.setVapidDetails(
+    process.env.VAPID_SUBJECT || 'mailto:aquatech@cesarreyesjaramillo.com',
+    publicKey,
+    privateKey
+  )
+  vapidConfigured = true
+}
 
 interface PushPayload {
   title: string
@@ -23,6 +34,8 @@ interface PushPayload {
  */
 export async function sendPushToUser(userId: number, payload: PushPayload) {
   try {
+    ensureVapidConfigured()
+    
     const subs = await prisma.pushSubscription.findMany({
       where: { userId }
     })

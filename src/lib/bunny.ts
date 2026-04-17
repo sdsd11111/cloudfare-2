@@ -1,20 +1,25 @@
-const BUNNY_STORAGE_ZONE = process.env.BUNNY_STORAGE_ZONE!
-const BUNNY_STORAGE_API_KEY = process.env.BUNNY_STORAGE_API_KEY!
-const BUNNY_STORAGE_HOST = process.env.BUNNY_STORAGE_HOST!
-const BUNNY_PULLZONE_URL = process.env.BUNNY_PULLZONE_URL!
+function getBunnyConfig() {
+  return {
+    zone: process.env.BUNNY_STORAGE_ZONE || '',
+    apiKey: process.env.BUNNY_STORAGE_API_KEY || '',
+    host: process.env.BUNNY_STORAGE_HOST || '',
+    pullZone: process.env.BUNNY_PULLZONE_URL || '',
+  }
+}
 
 export async function uploadToBunny(
   file: Buffer,
   filename: string,
   folder: string = 'aquatech-crm'
 ): Promise<string> {
+  const { zone, apiKey, host, pullZone } = getBunnyConfig()
   const timestamp = Date.now()
-  const path = `/${BUNNY_STORAGE_ZONE}/${folder}/${timestamp}-${filename}`
+  const path = `/${zone}/${folder}/${timestamp}-${filename}`
   
-  const response = await fetch(`https://${BUNNY_STORAGE_HOST}${path}`, {
+  const response = await fetch(`https://${host}${path}`, {
     method: 'PUT',
     headers: {
-      AccessKey: BUNNY_STORAGE_API_KEY,
+      AccessKey: apiKey,
       'Content-Type': 'application/octet-stream',
     },
     body: file as any,
@@ -24,17 +29,18 @@ export async function uploadToBunny(
     throw new Error(`Bunny upload failed: ${response.statusText}`)
   }
 
-  return `${BUNNY_PULLZONE_URL}/${folder}/${timestamp}-${filename}`
+  return `${pullZone}/${folder}/${timestamp}-${filename}`
 }
 
 export async function deleteFromBunny(fileUrl: string): Promise<void> {
-  const urlPath = fileUrl.replace(BUNNY_PULLZONE_URL!, '')
-  const path = `/${BUNNY_STORAGE_ZONE}${urlPath}`
+  const { zone, apiKey, host, pullZone } = getBunnyConfig()
+  const urlPath = fileUrl.replace(pullZone, '')
+  const path = `/${zone}${urlPath}`
   
-  await fetch(`https://${BUNNY_STORAGE_HOST}${path}`, {
+  await fetch(`https://${host}${path}`, {
     method: 'DELETE',
     headers: {
-      AccessKey: BUNNY_STORAGE_API_KEY,
+      AccessKey: apiKey,
     },
   })
 }
