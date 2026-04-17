@@ -28,6 +28,15 @@ const config: NextConfig = {
       },
     ],
   },
+  // Optimización para Cloudflare: Evitar empaquetar los motores de Prisma
+  serverExternalPackages: ['@prisma/client'],
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      // Marcar los binarios de prisma como externos para que Webpack no los incluya en el bundle
+      config.externals.push(/^(?:@prisma\/client\/|prisma\/).*\.(?:node|so\.\d+|dll)$/);
+    }
+    return config;
+  },
 };
 
 export default withPWA(config);

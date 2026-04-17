@@ -1,8 +1,6 @@
 'use client'
 
 import { useState, useTransition, useEffect, useRef, useCallback, useMemo } from 'react'
-import { jsPDF } from 'jspdf'
-import autoTable from 'jspdf-autotable'
 import Link from 'next/link'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import ProjectUploader, { ProjectFile } from '@/components/ProjectUploader'
@@ -843,6 +841,10 @@ export default function ProjectDetailClient({ project, availableOperators = [] }
       const fullProject = await fetchFullProjectData()
       if (!fullProject) return
 
+      // Dynamic import to reduce bundle size
+      const { jsPDF } = await import('jspdf')
+      const { default: autoTable } = await import('jspdf-autotable')
+
       const doc = new jsPDF()
       const primaryColor = [56, 189, 248] // #38BDF8
       
@@ -981,6 +983,10 @@ export default function ProjectDetailClient({ project, availableOperators = [] }
     try {
       const fullProject = await fetchFullProjectData()
       if (!fullProject) return
+
+      // Dynamic import to reduce bundle size
+      const { jsPDF } = await import('jspdf')
+      const { default: autoTable } = await import('jspdf-autotable')
 
       const doc = new jsPDF()
 
